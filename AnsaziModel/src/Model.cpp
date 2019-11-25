@@ -185,15 +185,15 @@ void AnsaziModel::removeAgent()
 			Mcontext.removeAgent((*Mit) -> getId());
     		countOfAgents --;
     	}
-		/*else
+		else
 		{
 			(*Mit)->getAttributes(MaizeFieldData1, MaizeFieldData2);
 			(*it)->Maizeloc2str();
-			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
+			x = 1000; //droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
 			(*Mit)->MaizeProduction(x);
 			(*it)->updateMaizeStock((*Mit)->currentYield);
 			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
-			/*if((*it)->checkMaize() == 1)
+			if((*it)->checkMaize() == 1)
 			{
 				std::cout<<"This is The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
 
@@ -206,7 +206,7 @@ void AnsaziModel::removeAgent()
 				//std::cout<<<<(*Mit) -> getId()<<std::endl;
     			countOfAgents --;
 			}
-		}*/
+		}
 		it++;
 		Mit++;
 	}
