@@ -112,7 +112,7 @@ void Agent::updateMaizeStock(int Yield)
 		{
 			previousYield[tick] = 0;
 		}
-		tick++; 
+		tick=tick+1; 
 	}
 }
 
