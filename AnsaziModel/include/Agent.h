@@ -20,7 +20,7 @@ private:
 
 	int agentType;
     int deathAge;
-    int maizeStock;
+    int maizeStock = 0;
     int maizeOwnership;
     int baseYield;
     int infertileAge;
@@ -30,7 +30,7 @@ private:
     int maizeLocX;
     int maizeLocY;
 
-    int previousYield[3]={0,0,0};
+    int previousYield[3]={2000,0,0};
     int houseLocation[2];
 
     int tick=0; 
@@ -56,7 +56,7 @@ public:
 	std::string Yval;
 
     int maizeID;
-    int expectedYield;
+    int expectedYield = 0;
     
 	//Program functions
 	bool checkDeath();
