@@ -77,12 +77,18 @@ void AnsaziModel::doPerTick()
 
 	cout << "Start of tick ------------------------------------------" << endl; 
 	cout << "Current Year: " << currentYear << endl; 
-
-	removeAgent();
-	fissionProcess(); 
-	if(currentYear==800){
-		printToScreen();
+	if(countOfAgents!= 0) 
+		removeAgent();
+	if(countOfAgents!= 0)
+	{
+		std::cout<<"fission happening"<<std::endl; 
+		fissionProcess();
 	}
+	else 
+		std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
+	//if(currentYear==800){
+	printToScreen();
+	//}
 	cout << "=End of tick --------------------------------------------" << endl;
 	currentYear++;
 }
@@ -129,13 +135,14 @@ void AnsaziModel::initAgents()
 		repast::AgentId Maizeid(i, rank, 0);						//Give agent a unique ID
 		repast::AgentId id(i, rank, 0);						//Give agent a unique ID
 		
+
 		id.currentRank(rank);
 		Maizeid.currentRank(rank);
 
 		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge,xMLoc,yMLoc); //Create new agent with defined values
 		MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);    //MaizeFieldData
 		std::cout<<"Agent ID: "<<id<<std::endl;
-		std::cout<<"MaizeID ID: "<<id<<std::endl;
+		std::cout<<"MaizeID ID: "<<maizeField<<std::endl;
 		//agent->maizeID = i;
 		context.addAgent(agent);
 		Mcontext.addAgent(maizeField);
@@ -154,18 +161,26 @@ void AnsaziModel::removeAgent()
 	std::vector<MaizeField*> maizeFields;
 
 	context.selectAgents(repast::SharedContext<Agent>::LOCAL, countOfAgents, agents);
-	Mcontext.selectAgents(repast::SharedContext<MaizeField>::LOCAL, countOfAgents, maizeFields);
 
 	std::vector<Agent*>::iterator it = agents.begin();
-	std::vector<MaizeField*>::iterator Mit = maizeFields.begin();
 
 	it = agents.begin();
-	Mit = maizeFields.begin();
+	
 	std::cout<<"================================= TEST 5 ================================="<<std::endl;
 	std::cout<<"================================= TEST 4 ================================="<<std::endl;
-	while(it != agents.end()&& Mit != maizeFields.end())
+	while(it != agents.end())
 	{
+		maizeFields.clear(); 
+		Mcontext.selectAgents(repast::SharedContext<MaizeField>::LOCAL, countOfAgents, maizeFields);
+		std::vector<MaizeField*>::iterator Mit = maizeFields.begin();
+		Mit = maizeFields.begin();
+		while((*Mit) -> getId()!= (*it) -> getId()){
+			Mit++;
+			std::cout<<"Agent ID at run: "<<(*it) -> getId()<<std::endl;
+	    	std::cout<<"MaizeID ID at run: "<<(*Mit) -> getId()<<std::endl;
+		}
 		//(*it) -> printAttributes();  
+		//std::cout<<"Checking agent is dead-----------------------"<<std::endl; 
 		if ((*it)->checkDeath())
 		{
 			//std::cout<<"The Agent ID is: "<<(*it) -> getId().id()<<std::endl;
@@ -182,15 +197,16 @@ void AnsaziModel::removeAgent()
 			//std::cout <<"!Deleted Curent MaizeField"<< (*Mit) -> getId().id()<<" as death age met!"<<std::endl; 
 			//std::cout <<"Agent was in location : "<<
 			//int id = (*it) -> getId().id(); 
-    		//repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
-			std::cout<<"Agent ID at death: "<<(*it) -> getId()<<std::endl;
-		    std::cout<<"MaizeID ID at death: "<<(*Mit) -> getId()<<std::endl;
+
+			repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
     		context.removeAgent((*it) -> getId());
 			Mcontext.removeAgent((*Mit) -> getId());
+			std::cout<<"Agent Deleted---"<<std::endl; 
     		countOfAgents --;
     	}
 		else
 		{
+			std::cout<<"Changing maizefield attributes"<<std::endl; 
 			(*Mit)->getAttributes(MaizeFieldData1, MaizeFieldData2);
 			(*it)->Maizeloc2str();
 			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
@@ -198,36 +214,42 @@ void AnsaziModel::removeAgent()
 			(*it)->updateMaizeStock((*Mit)->currentYield);
 			std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
 			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
+			std::cout<<"Check if enough maize"<<std::endl;
 			if((*it)->checkMaize() == 1)
 			{
 				std::cout<<"This is The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
-
+				std::cout<<"Killing agent: "<<(*it) -> getId()<<std::endl;
+				std::cout<<"Killing maize: "<<(*it) -> getId()<<std::endl;
 				//repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
-				
     			context.removeAgent((*it) -> getId());
 				Mcontext.removeAgent((*Mit) -> getId());
-				
 				//std::cout<<<<(*Mit) -> getId()<<std::endl;
+				
     			countOfAgents --;
+    			std::cout<<"Agent Deleted ---"<<std::endl; 
+
 			}
 		}
 		it++;
-		Mit++;
+		//Mit++;
 	}
+	std::cout<<"while loop finished"<<std::endl;
 }
 
 void AnsaziModel::fissionProcess()
 {
 	std::vector<Agent*> agents;
 	std::vector<MaizeField*> MaizeFieldList;
-
+	//std::cout<<"Cant create agent"<<std::endl; 
 	int i=0; 
 	context.selectAgents(repast::SharedContext<Agent>::LOCAL, countOfAgents, agents);
 	std::vector<Agent*>::iterator it = agents.begin();
 	it = agents.begin();
+
 	//std::cout<<"----------------Fission Process----------------------------"<<std::endl; 
 	while(it != agents.end())
 	{
+		std::cout<<"Cant create agent"<<std::endl; 
 		//(*it) -> printAttributes();  
 		if ((*it)->fissionReady())
 		{
@@ -236,16 +258,13 @@ void AnsaziModel::fissionProcess()
 			
 			//Load random values to initilaise agents
 
-			repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
-			repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
-
+		repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
+		repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
 			int initialAge= 0;
 			int infertileAge=30;
-			int fertileAge = 16;
-
 			int xLoc = gen4.next(); int yLoc = gen5.next();
 			int xMLoc = gen4.next(); int yMLoc = gen5.next();
-			
+			int fertileAge = 16;
 			int rank = repast::RepastProcess::instance()->rank();
 			
 			//Add info to simulation
@@ -264,11 +283,11 @@ void AnsaziModel::fissionProcess()
 			Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge, maizeLoc[0], maizeLoc[1]); //Create new agent with defined values
 			MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);  
 
-			context.addAgent(agent);
 			Mcontext.addAgent(maizeField);
-			
+			context.addAgent(agent);
+
 			discreteSpace->moveTo(id, initialLocation);
-			MdiscreteSpace->moveTo(id, initialMaizeLocation);
+			MdiscreteSpace->moveTo(Maizeid, initialMaizeLocation);
 			countOfAgents ++; 
 			currentId ++;
     	}
