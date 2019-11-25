@@ -78,7 +78,8 @@ void AnsaziModel::doPerTick()
 
 	removeAgent();
 	fissionProcess(); 
-	if(currentYear==800){
+	if(currentYear==800)
+	{
 		printToScreen();
 	}
 	cout << "=End of tick --------------------------------------------" << endl;
@@ -113,6 +114,7 @@ void AnsaziModel::initAgents()
 		std::cout<<"NewAgent----------------------"<<std::endl;   
 		std::vector<Agent*> agentList;
 		std::vector<MaizeField*> MaizeFieldList;
+		
 		//Load random values to initilaise agents
 		int initialAge=gen2.next();
 		int infertileAge=30;
