@@ -27,6 +27,8 @@ class MaizeField
         int BY = 0; // BY = y*q*Ha = bass yield     
         float sigmaahv = 0;
         int data = 0; 
+        int data1;
+        int data2;
 
     public:
         int currentYield = 0;
