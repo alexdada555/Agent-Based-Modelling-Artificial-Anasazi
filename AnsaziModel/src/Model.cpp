@@ -133,9 +133,10 @@ void AnsaziModel::initAgents()
 		Maizeid.currentRank(rank);
 
 		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge,xMLoc,yMLoc); //Create new agent with defined values
-		MaizeField* maizeField = new MaizeField(Maizeid, MaizeFieldData1, MaizeFieldData2);    //MaizeFieldData
-		
-		agent->maizeID = i;
+		MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);    //MaizeFieldData
+		std::cout<<"Agent ID: "<<id<<std::endl;
+		std::cout<<"MaizeID ID: "<<id<<std::endl;
+		//agent->maizeID = i;
 		context.addAgent(agent);
 		Mcontext.addAgent(maizeField);
 		std::cout<<"Agent ID: "<<id<<std::endl;
@@ -182,10 +183,10 @@ void AnsaziModel::removeAgent()
 			//std::cout <<"Agent was in location : "<<
 			//int id = (*it) -> getId().id(); 
     		repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
-    		repast::RepastProcess::instance()->agentRemoved((*Mit) -> getId());
-
+			std::cout<<"Agent ID at death: "<<(*it) -> getId()<<std::endl;
+		    std::cout<<"MaizeID ID at death: "<<(*Mit) -> getId()<<std::endl;
     		context.removeAgent((*it) -> getId());
-			Mcontext.removeAgent((*Mit) -> getId());
+			Mcontext.removeAgent((*it) -> getId());
     		countOfAgents --;
     	}
 		else
@@ -202,10 +203,9 @@ void AnsaziModel::removeAgent()
 				std::cout<<"This is The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
 
 				repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
-    			repast::RepastProcess::instance()->agentRemoved((*Mit) -> getId());
-
+				
     			context.removeAgent((*it) -> getId());
-				Mcontext.removeAgent((*Mit) -> getId());
+				Mcontext.removeAgent((*it) -> getId());
 				
 				//std::cout<<<<(*Mit) -> getId()<<std::endl;
     			countOfAgents --;
@@ -259,7 +259,7 @@ void AnsaziModel::fissionProcess()
 			maizeLoc[1] = (*it) -> getMaizeLocY();
 
 			Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge, maizeLoc[0], maizeLoc[1]); //Create new agent with defined values
-			MaizeField* maizeField = new MaizeField(Maizeid, MaizeFieldData1, MaizeFieldData2);  
+			MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);  
 
 			Mcontext.addAgent(maizeField);
 			context.addAgent(agent);
