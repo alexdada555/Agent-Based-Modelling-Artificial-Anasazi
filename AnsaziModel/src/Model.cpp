@@ -78,8 +78,7 @@ void AnsaziModel::doPerTick()
 
 	removeAgent();
 	fissionProcess(); 
-	if(currentYear==800)
-	{
+	if(currentYear==800){
 		printToScreen();
 	}
 	cout << "=End of tick --------------------------------------------" << endl;
@@ -114,7 +113,6 @@ void AnsaziModel::initAgents()
 		std::cout<<"NewAgent----------------------"<<std::endl;   
 		std::vector<Agent*> agentList;
 		std::vector<MaizeField*> MaizeFieldList;
-
 		//Load random values to initilaise agents
 		int initialAge=gen2.next();
 		int infertileAge=30;
@@ -187,15 +185,15 @@ void AnsaziModel::removeAgent()
 			Mcontext.removeAgent((*Mit) -> getId());
     		countOfAgents --;
     	}
-		else
+		/*else
 		{
 			(*Mit)->getAttributes(MaizeFieldData1, MaizeFieldData2);
 			(*it)->Maizeloc2str();
-			x = 1000; //droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
+			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
 			(*Mit)->MaizeProduction(x);
 			(*it)->updateMaizeStock((*Mit)->currentYield);
 			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
-			if((*it)->checkMaize() == 1)
+			/*if((*it)->checkMaize() == 1)
 			{
 				std::cout<<"This is The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
 
@@ -208,7 +206,7 @@ void AnsaziModel::removeAgent()
 				//std::cout<<<<(*Mit) -> getId()<<std::endl;
     			countOfAgents --;
 			}
-		}
+		}*/
 		it++;
 		Mit++;
 	}
