@@ -21,6 +21,8 @@
 #include "Model.h"
 std::vector<std::vector<std::string> > readcsv(std::string);
 int droughtindex(int year, std::string xaxis, std::string yaxis);
+int waterlocation(int year1, std::string xaxis1, std::string yaxis1);
+
 
 AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm): context(comm), Mcontext(comm)
 {
@@ -42,8 +44,8 @@ AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mp
 	initializeRandom(*props, comm);																	
 
 	//Init the shared space
-	repast::Point<double> origin(1,1);															//Shared Space Starts at (x,y)
-	repast::Point<double> extent(boardSizex+1,boardSizey+1);										//Shared Space stops at (x,y) 
+	repast::Point<double> origin(0,0);															//Shared Space Starts at (x,y)
+	repast::Point<double> extent(boardSizex,boardSizey);										//Shared Space stops at (x,y) 
 	repast::GridDimensions gd(origin, extent);													//Shared Space defined as (start,stop)
 	
 	std::vector<int> processDims;
@@ -103,8 +105,8 @@ void AnsaziModel::initAgents()
 
 	repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(currentmin, currentmax);
 	repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(fertilemin, fertilemax);
-	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(1, boardSizex);
-	repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(1, boardSizey);
+	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
+	repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
 	std::cout<<"=====================================Test 1 ====================="<<std::endl;
 	std::cout<<"----------------------------------Initialisng Agents-------------"<<std::endl;
 
@@ -189,11 +191,11 @@ void AnsaziModel::removeAgent()
 		{
 			(*Mit)->getAttributes(MaizeFieldData1, MaizeFieldData2);
 			(*it)->Maizeloc2str();
-			x = 1000; //droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
+			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
 			(*Mit)->MaizeProduction(x);
 			(*it)->updateMaizeStock((*Mit)->currentYield);
 			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
-			if((*it)->checkMaize() == 1)
+			/*if((*it)->checkMaize() == 1)
 			{
 				std::cout<<"This is The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
 
@@ -205,7 +207,7 @@ void AnsaziModel::removeAgent()
 				
 				//std::cout<<<<(*Mit) -> getId()<<std::endl;
     			countOfAgents --;
-			}
+			}*/
 		}
 		it++;
 		Mit++;
@@ -231,9 +233,9 @@ void AnsaziModel::fissionProcess()
 			//std::vector<Agent*> agentList;
 			
 			//Load random values to initilaise agents
-			repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(1, boardSizex);
-			repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(1, boardSizey);
 
+	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
+	repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
 			int initialAge= 0;
 			int infertileAge=30;
 			int xLoc = gen4.next(); int yLoc = gen5.next();
@@ -327,7 +329,8 @@ void AnsaziModel::printToScreen()
 			if (i==0 || i==boardSizey+1)
 				std::cout << "-";
 			else if (j==0 || j==boardSizex+1)
-				std::cout << "|";
+				
+			std::cout << "|";
 			else 
 			{
 				agentList.clear();
@@ -378,15 +381,23 @@ void AnsaziModel::outputfile(int value)
     file.close(); 
 }
 
+int waterlocation(int year1, std::string xaxis1, std::string yaxis1)
+{
+	std::vector< std::vector<std::string> > water;
+    water = readcsv("src/water.csv");    
+    year1 =year1 - 799;
+    int startdateint, enddateint;
+
+   
+
+
+
+}
+
 int droughtindex(int year, std::string xaxis, std::string yaxis)
 {
     std::vector< std::vector<std::string> > pdsi, maps;
-    pdsi = readcsv("src/pdsi.csv");
-    //std::cout << "it went throught the first stage"<<year<<xaxis<<yaxis<<std::endl;
-    year =year - 799;
-    //std::cout << year << std::endl; 
-    //std::cout << pdsi[year][0]<<std::endl;
-    //std::cout << pdsi[2][1];
+    pdsi = readcsv("src/pdsi.csv");    year =year - 799;
     std::string content;
     std::string general;
     std::string north;
@@ -394,8 +405,10 @@ int droughtindex(int year, std::string xaxis, std::string yaxis)
     std::string natural;
     std::string upland;
     std::string kinbiko;
-    //std::cout << "Its here now sir "<<std::endl;
-
+    std::string yax;
+    std::string xax;
+    yax = yaxis.c_str();
+    xax = xaxis.c_str();
     general = pdsi[year][1];
     north = pdsi[year][2];
     mid = pdsi[year][3];
@@ -404,7 +417,6 @@ int droughtindex(int year, std::string xaxis, std::string yaxis)
     kinbiko = pdsi[year][6];
 
     float generalint, northint, midint, naturalint, uplandint, kinikoint;
-    //std::cout << "Its here now sir "<<std::endl;
 
     generalint = atof(general.c_str());
     northint = atof(north.c_str());
@@ -419,9 +431,6 @@ int droughtindex(int year, std::string xaxis, std::string yaxis)
     int droughtindexnat=0;
     int droughtindexupl=0;
     int droughtindexkin=0;
-
-    //using namespace std;
-    //std::cout << "Its here now sir 3"<<std::endl;
 
     if(generalint <=-3){
         droughtindexgen=514;
@@ -525,16 +534,16 @@ int droughtindex(int year, std::string xaxis, std::string yaxis)
     }
     int x=0,y=0;
     maps = readcsv("src/map.csv");
-        while(maps[y][1] != yaxis )
+        while(maps[y][1] != yax )
         {
             y++;
-            if(maps[y][1] == yaxis && maps[y][0] == xaxis)
+            if(maps[y][1] == yax && maps[y][0] == xax)
             {
-                break;
-            }
-            else if(maps[y][1] == yaxis && maps[y][0] != xaxis)
+             break;
+  			}
+            else if(maps[y][1] == yax && maps[y][0] != xax)
             {
-                y++;
+                y++;          
             }
 
         }
