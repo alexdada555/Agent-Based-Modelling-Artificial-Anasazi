@@ -194,6 +194,7 @@ void AnsaziModel::removeAgent()
 			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
 			(*Mit)->MaizeProduction(x);
 			(*it)->updateMaizeStock((*Mit)->currentYield);
+			std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
 			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
 			/*if((*it)->checkMaize() == 1)
 			{
