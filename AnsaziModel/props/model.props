@@ -1,0 +1,9 @@
+#Properties file
+stop.at = 5
+board.sizex = 80
+board.sizey = 120
+count.of.agents = 14
+startYear = 800 
+
+harvest.adjustment.level = 1
+sigmaahv = 0.1
