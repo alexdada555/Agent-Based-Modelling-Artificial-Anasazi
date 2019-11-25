@@ -44,7 +44,7 @@ class MaizeField
               repast::SharedDiscreteSpace<MaizeField, repast::StrictBorders, repast::SimpleAdder<MaizeField> >* space);
         void move(repast::SharedDiscreteSpace<MaizeField, repast::StrictBorders, repast::SimpleAdder<MaizeField> >* space); 
         
-        MaizeField(repast::AgentId MaizeFieldID,float Ha,float sigmaahv);
+        MaizeField(repast::AgentId MaizeFieldID,float data1,float data2);
         ~MaizeField();
         void getAttributes(float data1,float data2);
         void MaizeProduction(int yieldFromFile);

@@ -11,10 +11,10 @@
 #include <boost/mpi.hpp>
 #include <stdio.h>
 
-MaizeField::MaizeField(repast::AgentId MaizeFieldID,float Ha,float sigmaahv):MaizeFieldID(MaizeFieldID), Ha(Ha), sigmaahv(sigmaahv)
+MaizeField::MaizeField(repast::AgentId MaizeFieldID,float data1,float data2):MaizeFieldID(MaizeFieldID), data1(data1), data2(data2)
 {
     // initialise maizefield
-    //getAttributes(Ha,sigmaahv);   // read in constants from properties file
+    getAttributes(data1,data2);   // read in constants from properties file
 }
 
 void MaizeField::getAttributes(float data1,float data2)
