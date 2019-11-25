@@ -21,6 +21,7 @@ private:
 	int currentYear;
 	int currentId;
 	int x;
+	int deathAge; 
 	
 	std::vector<std::vector<std::string> > maps;
 	std::vector<std::vector<std::string> > water;
