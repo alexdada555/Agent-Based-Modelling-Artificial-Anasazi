@@ -55,7 +55,9 @@ public:
     std::string Xval;
 	std::string Yval;
 
+    int maizeID;
     int expectedYield;
+    
 	//Program functions
 	bool checkDeath();
     bool checkMaize();

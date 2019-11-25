@@ -135,6 +135,7 @@ void AnsaziModel::initAgents()
 		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge,xMLoc,yMLoc); //Create new agent with defined values
 		MaizeField* maizeField = new MaizeField(Maizeid, MaizeFieldData1, MaizeFieldData2);    //MaizeFieldData
 		
+		agent->maizeID = i;
 		context.addAgent(agent);
 		Mcontext.addAgent(maizeField);
 		std::cout<<"Agent ID: "<<id<<std::endl;
@@ -196,7 +197,7 @@ void AnsaziModel::removeAgent()
 			(*it)->updateMaizeStock((*Mit)->currentYield);
 			std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
 			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
-			/*if((*it)->checkMaize() == 1)
+			if((*it)->checkMaize() == 1)
 			{
 				std::cout<<"This is The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
 
@@ -208,7 +209,7 @@ void AnsaziModel::removeAgent()
 				
 				//std::cout<<<<(*Mit) -> getId()<<std::endl;
     			countOfAgents --;
-			}*/
+			}
 		}
 		it++;
 		Mit++;
