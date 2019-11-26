@@ -28,7 +28,6 @@ void MaizeField::MaizeProduction(int yieldFromFile)
 {
     repast::IntUniformGenerator gen1 = repast::Random::instance()->createUniIntGenerator(0, 1); // initialise random number generator
     repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(0, sigmaahv); // initialise random number generator
-
     q = gen1.next();
 
     y = yieldFromFile;

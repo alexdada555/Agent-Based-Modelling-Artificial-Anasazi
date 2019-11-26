@@ -87,7 +87,8 @@ void AnsaziModel::doPerTick()
 	else 
 		std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
 	
-	printToScreen();
+	if(currentYear == 800 || currentYear ==809)
+		printToScreen();
 	outputfile(countOfAgents);
 	currentYear++;
 }
@@ -211,12 +212,12 @@ void AnsaziModel::removeAgent()
 			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
 			(*Mit)->MaizeProduction(x);
 			(*it)->updateMaizeStock((*Mit)->currentYield);
-			//std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
-			//std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
+			std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
+			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
 			//std::cout<<"Check if enough maize"<<std::endl;
 			if((*it)->checkMaize() == 1)
 			{
-				std::cout<<"The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
+				//std::cout<<"The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
 				std::cout<<"Trying to move agent and maize field: "<<(*it) -> getId()<<(*Mit) -> getId()<<std::endl;
 				//std::cout<<"Killing maize: "<<(*Mit) -> getId()<<std::endl;
 				bool kill = false; 
@@ -231,46 +232,89 @@ void AnsaziModel::removeAgent()
 		}
 		it++;
 	}
-}
+}                 						
 
 bool AnsaziModel::move(MaizeField* Mit, Agent* it){
 	std::vector<MaizeField*> MaizeFieldList;
 	std::vector<Agent*> agentList;
-	bool selectionA = false, selectionB = false; //Selection A makes sure there's a clear space and selection B makes sure there's enough maize being produced. 
+	bool selectionA = false, selectionB = true; //Selection A makes sure there's a clear space and selection B makes sure there's enough maize being produced. 
 
 	//Initialise random numbers 
-	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
-	repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
+	repast::IntUniformGenerator gen1 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
+	repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
 
-	//Find random location
-	int xMLoc = gen4.next(); int yMLoc = gen5.next();
+	//Move the miaze field 
+	int xMLoc = -1; int yMLoc = -1;
+	bool end = false; 
 
-	do
+	for(int i=0; i<80; i++)
 	{
-		agentList.clear();
-		MaizeFieldList.clear(); 
-		xMLoc = gen4.next(); yMLoc = gen5.next();
-		discreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), agentList);
-		MdiscreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), MaizeFieldList);
-		if(agentList.size()==0&&MaizeFieldList.size()==0)
+		for(int j = 0; j <120; j++)
 		{
-			selectionA = true;
+			agentList.clear();
+			MaizeFieldList.clear();
+			discreteSpace->getObjectsAt(repast::Point<int>(i, j), agentList);
+			MdiscreteSpace->getObjectsAt(repast::Point<int>(i, j), MaizeFieldList);
+			if(agentList.size()==0&&MaizeFieldList.size()==0)
+			{
+				int xMLoc = i;
+				int yMLoc = j; 
+				end = true; 
+				break;
+			}
 		}
+		if(end == true)
+			break;
+	}
 
-		x = droughtindex(currentYear,xMLoc,xMLoc);
-		Mit->getAttributes(MaizeFieldData1, MaizeFieldData2);
-		Mit->MaizeProduction(x);
-		if(Mit->currentYield > 800))
+	if(xMLoc == -1)
+	{
+		return true; 
+	}
+	else
+	{
+		repast::Point<int> MaizeLocation(xMLoc, yMLoc);
+		MdiscreteSpace->moveTo(Mit -> getId(), MaizeLocation);
+		//std::cout<<"MaizeField moved to location:"<< Mit -> getId() <<MaizeLocation<<endl;
+		//Move the agent  
+		//std::cout<<"Trying Locations:"; 
+		std::vector<int> gXloc; 
+		std::vector<int> gYloc; 
+
+		for(int i = -10; i<=10; i++)
 		{
-			selectionB = true;
+			int xLoc = xMLoc+i;
+			if(xLoc>=0&&xLoc<80)
+			{
+				for(int j = -10; j<=10 ; j++)
+				{	
+					int yLoc = yMLoc+j; 
+					if(yLoc>=0&&yLoc<120)
+					{	
+						MaizeFieldList.clear();
+						MdiscreteSpace->getObjectsAt(repast::Point<int>(xLoc, yLoc), MaizeFieldList);
+						//std::cout<<"Xloc:"<<xLoc<<" Yloc:"<<yLoc<<std::endl; 
+						//Convert i and j
+						if(MaizeFieldList.size()==0/*&&!waterlocation(currentYear, xs.str(),ys.str())*/)
+						{
+							gXloc.push_back(xLoc);
+							gYloc.push_back(yLoc);
+						}
+					}
+				}
+			}
+		}
+		if (gXloc.size() ==0)
+		{
+			return true; 
+		}
+		else
+		{ 
+			repast::Point<int> agentLocation(gXloc[1], gYloc[1]);
+			MdiscreteSpace->moveTo(it -> getId(), agentLocation);
+			return false; 
 		}
 	}
-	while (!selectionA && !selectionB);
-	repast::Point<int> MaizeLocation(xMLoc, yMLoc);
-	MdiscreteSpace->moveTo(Mit -> getId(), MaizeLocation);
-	std::cout<<"MaizeField moved to location:"<<Mit -> getId()<<MaizeLocation<<endl;
-	//MdiscreteSpace->moveTo(Agentid, MaizeLocation);
-	return false; 
 }
 
 void AnsaziModel::fissionProcess()
