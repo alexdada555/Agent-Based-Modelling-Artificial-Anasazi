@@ -22,6 +22,7 @@ private:
 	int currentId;
 	int x;
 	int deathAge; 
+	bool watertest; 
 	
 	std::vector<std::vector<std::string> > maps;
 	std::vector<std::vector<std::string> > water;
