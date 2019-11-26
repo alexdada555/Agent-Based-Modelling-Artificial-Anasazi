@@ -20,7 +20,7 @@ private:
 
 	int agentType;
     int deathAge;
-    int maizeStock = 0;
+    int maizeStock;
     int maizeOwnership;
     int baseYield;
     int infertileAge;
@@ -72,7 +72,6 @@ public:
     int getMaizeLocY();
     
     void printAttributes();
-    void move();
     void initialiseInfo();
     void checkResidence();
     void killResidence();
@@ -80,6 +79,7 @@ public:
     void updateMaizeStock(int Yield);
     void updateAge();
     void Maizeloc2str();
+    void move(); 
 };
 
 #endif
