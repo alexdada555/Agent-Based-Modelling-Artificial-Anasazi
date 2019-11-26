@@ -22,7 +22,7 @@ private:
 	int currentId;
 	int x;
 	int deathAge; 
-	bool watertest; 
+	bool watertest;
 	
 	std::vector<std::vector<std::string> > maps;
 	std::vector<std::vector<std::string> > water;
@@ -51,6 +51,7 @@ public:
 	void updateDeath();
 	void fissionProcess(); 
 	void outputfile(int value); 
+	bool move(MaizeField* Mit, Agent* it); 
 
 };
 
