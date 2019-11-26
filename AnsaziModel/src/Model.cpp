@@ -37,8 +37,8 @@ AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mp
 
     MaizeFieldData1 = 1;																		//repast::strToFloat(props->getProperty("harvest.adjustment.level"));
     MaizeFieldData2 = 0.1;																		//repast::strToFloat(props->getProperty("sigmaahv"));
-	watertest= waterlocation(1000,"44","96");
-    cout << "water is : " <<  watertest << "\n" ;
+	//watertest= waterlocation(1000,"44","96");
+    //cout << "water is : " <<  watertest << "\n" ;
 
 	currentId = countOfAgents; 
 
@@ -82,15 +82,13 @@ void AnsaziModel::doPerTick()
 		removeAgent();
 	if(countOfAgents!= 0)
 	{
-		std::cout<<"fission happening"<<std::endl; 
 		fissionProcess();
 	}
 	else 
 		std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
-	//if(currentYear==800){
+	
 	printToScreen();
-	//}
-	cout << "=End of tick --------------------------------------------" << endl;
+	outputfile(countOfAgents);
 	currentYear++;
 }
 
@@ -114,12 +112,12 @@ void AnsaziModel::initAgents()
 	repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(fertilemin, fertilemax);
 	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
 	repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
-	std::cout<<"=====================================Test 1 ====================="<<std::endl;
-	std::cout<<"----------------------------------Initialisng Agents-------------"<<std::endl;
+	//std::cout<<"=====================================Test 1 ====================="<<std::endl;
+	//std::cout<<"----------------------------------Initialisng Agents-------------"<<std::endl;
 
 	for(int i=0 ;i<countOfAgents;i++)//13 agents initially then one made ourselves for testing
 	{      
-		std::cout<<"NewAgent----------------------"<<std::endl;   
+		//std::cout<<"NewAgent----------------------"<<std::endl;   
 		std::vector<Agent*> agentList;
 		std::vector<MaizeField*> MaizeFieldList;
 		//Load random values to initilaise agents
@@ -142,14 +140,14 @@ void AnsaziModel::initAgents()
 
 		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge,xMLoc,yMLoc); //Create new agent with defined values
 		MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);    //MaizeFieldData
-		std::cout<<"Agent ID: "<<id<<std::endl;
-		std::cout<<"MaizeID ID: "<<maizeField<<std::endl;
+		//std::cout<<"Agent ID: "<<id<<std::endl;
+		//std::cout<<"MaizeID ID: "<<maizeField<<std::endl;
 		//agent->maizeID = i;
 		context.addAgent(agent);
 		Mcontext.addAgent(maizeField);
-		std::cout<<"Agent ID: "<<id<<std::endl;
-		std::cout<<"Agent Loc: "<<initialLocation<<std::endl; 
-		std::cout<<"Death Age: "<<deathAge<<std::endl; 
+		//std::cout<<"Agent ID: "<<id<<std::endl;
+		//std::cout<<"Agent Loc: "<<initialLocation<<std::endl; 
+		//std::cout<<"Death Age: "<<deathAge<<std::endl; 
 		//cout<<"Initial location: "<<initialLocation<<endl;
 		discreteSpace->moveTo(id, initialLocation);
 		MdiscreteSpace->moveTo(Maizeid, initialMaizeLocation);
@@ -167,8 +165,8 @@ void AnsaziModel::removeAgent()
 
 	it = agents.begin();
 	
-	std::cout<<"================================= TEST 5 ================================="<<std::endl;
-	std::cout<<"================================= TEST 4 ================================="<<std::endl;
+	//std::cout<<"================================= TEST 5 ================================="<<std::endl;
+	//std::cout<<"================================= TEST 4 ================================="<<std::endl;
 	while(it != agents.end())
 	{
 		maizeFields.clear(); 
@@ -177,8 +175,8 @@ void AnsaziModel::removeAgent()
 		Mit = maizeFields.begin();
 		while((*Mit) -> getId()!= (*it) -> getId()){
 			Mit++;
-			std::cout<<"Agent ID at run: "<<(*it) -> getId()<<std::endl;
-	    	std::cout<<"MaizeID ID at run: "<<(*Mit) -> getId()<<std::endl;
+			//std::cout<<"Agent ID at run: "<<(*it) -> getId()<<std::endl;
+	    	//std::cout<<"MaizeID ID at run: "<<(*Mit) -> getId()<<std::endl;
 		}
 		//(*it) -> printAttributes();  
 		//std::cout<<"Checking agent is dead-----------------------"<<std::endl; 
@@ -186,7 +184,7 @@ void AnsaziModel::removeAgent()
 		{
 			//std::cout<<"The Agent ID is: "<<(*it) -> getId().id()<<std::endl;
 			(*it) -> printAttributes(); 	
-			std::cout <<"!Deleted Curent Age as death age met!-----------------------"<<std::endl;
+			//std::cout <<"!Deleted Curent Age as death age met!-----------------------"<<std::endl;
 
 			int maizeLoc[2];
 
@@ -202,39 +200,64 @@ void AnsaziModel::removeAgent()
 			repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
     		context.removeAgent((*it) -> getId());
 			Mcontext.removeAgent((*Mit) -> getId());
-			std::cout<<"Agent Deleted---"<<std::endl; 
+			//std::cout<<"Agent Deleted---"<<std::endl; 
     		countOfAgents --;
     	}
 		else
 		{
-			std::cout<<"Changing maizefield attributes"<<std::endl; 
+			//std::cout<<"Changing maizefield attributes"<<std::endl; 
 			(*Mit)->getAttributes(MaizeFieldData1, MaizeFieldData2);
 			(*it)->Maizeloc2str();
 			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
 			(*Mit)->MaizeProduction(x);
 			(*it)->updateMaizeStock((*Mit)->currentYield);
-			std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
-			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
-			std::cout<<"Check if enough maize"<<std::endl;
+			//std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
+			//std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
+			//std::cout<<"Check if enough maize"<<std::endl;
 			if((*it)->checkMaize() == 1)
 			{
-				std::cout<<"This is The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
-				std::cout<<"Killing agent: "<<(*it) -> getId()<<std::endl;
-				std::cout<<"Killing maize: "<<(*it) -> getId()<<std::endl;
-				//repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
-    			context.removeAgent((*it) -> getId());
-				Mcontext.removeAgent((*Mit) -> getId());
-				//std::cout<<<<(*Mit) -> getId()<<std::endl;
-				
-    			countOfAgents --;
-    			std::cout<<"Agent Deleted ---"<<std::endl; 
-
+				std::cout<<"The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
+				std::cout<<"Trying to move agent and maize field: "<<(*it) -> getId()<<(*Mit) -> getId()<<std::endl;
+				//std::cout<<"Killing maize: "<<(*Mit) -> getId()<<std::endl;
+				bool kill = false; 
+				kill = move((*Mit),(*it));
+				if(kill){
+					repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
+	    			context.removeAgent((*it) -> getId());
+					Mcontext.removeAgent((*Mit) -> getId());
+	    			countOfAgents --;
+	    		}
 			}
 		}
 		it++;
-		//Mit++;
 	}
-	std::cout<<"while loop finished"<<std::endl;
+}
+
+bool AnsaziModel::move(MaizeField* Mit, Agent* it){
+	std::vector<MaizeField*> MaizeFieldList;
+	std::vector<Agent*> agentList;
+	bool selectionA = false, selectionB = true; //Selection A makes sure there's a clear space and selection B makes sure there's enough maize being produced. 
+
+	//Initialise random numbers 
+	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
+	repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
+
+	//Find random location
+	int xMLoc = gen4.next(); int yMLoc = gen5.next();
+	do{
+		agentList.clear();
+		MaizeFieldList.clear(); 
+		xMLoc = gen4.next(); yMLoc = gen5.next();
+		discreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), agentList);
+		MdiscreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), MaizeFieldList);
+		if(agentList.size()==0&&MaizeFieldList.size()==0)
+			selectionA = true;
+	}while (!selectionA /*&& selectionB==false*/);
+	repast::Point<int> MaizeLocation(xMLoc, yMLoc);
+	MdiscreteSpace->moveTo(Mit -> getId(), MaizeLocation);
+	std::cout<<"MaizeField moved to location:"<<Mit -> getId()<<MaizeLocation<<endl;
+	//MdiscreteSpace->moveTo(Agentid, MaizeLocation);
+	return false; 
 }
 
 void AnsaziModel::fissionProcess()
@@ -250,7 +273,7 @@ void AnsaziModel::fissionProcess()
 	//std::cout<<"----------------Fission Process----------------------------"<<std::endl; 
 	while(it != agents.end())
 	{
-		std::cout<<"Cant create agent"<<std::endl; 
+		//std::cout<<"Cant create agent"<<std::endl; 
 		//(*it) -> printAttributes();  
 		if ((*it)->fissionReady())
 		{
@@ -299,54 +322,13 @@ void AnsaziModel::fissionProcess()
 	}
 };
 
-std::vector<std::vector<std::string> > readcsv(std::string filename1)
-{
-    std::ifstream f;
-    f.open(filename1);
-    if(!f.is_open()) std::cout << "ERROR " ;
-    std::string rows, values;
-
-    std::vector< std::vector<std::string> > array;  // the 2D array
-    std::vector<std::string> v;                // array of values for one line only
-    //std::cout << "test 2 \n" << std::endl; 
-    getline(f,rows);
-
-    while ( getline(f,rows) )    // get next line in file
-    {
-        v.clear();
-        std::stringstream ss(rows);
-        while (getline(ss,values,','))  // break line into comma delimitted fields
-        {
-            v.push_back(values);  // add each field to the 1D array
-        }
-
-        array.push_back(v);  // add the 1D array to the 2D array
-    }
-
-    // print out what was read in------------------------------------------------
-    /*if(filename1=="src/water.csv")
-	{
-	    //std::cout << "test 2 \n" << endl; 
-	    for (size_t x=0; x<array.size(); ++x)
-	    {
-	        for (size_t y=0; y<array[x].size(); ++y)
-	        {
-	            std::cout << array[x][y] << "|"; // (separate fields by |)
-	        }
-	        std::cout << "\n";
-	    }
-	    cout << array[1][1];
-	}*/
-    return array;
-}
-
 void AnsaziModel::printToScreen() 
 {
 	//print board to screen
 	std::vector<Agent*> agentList;
 	std::vector<MaizeField*> MaizeFieldList;
-	std::cout<<"========================== TEST 2 =================================== "<<endl;
-	std::cout<<"========================== TEST 5 ================================="<<endl;
+	//std::cout<<"========================== TEST 2 =================================== "<<endl;
+	//std::cout<<"========================== TEST 5 ================================="<<endl;
 	for (int i=0; i<=boardSizey+1; i++)
 	{
 		for (int j=0; j<=boardSizex+1; j++) 
@@ -390,16 +372,59 @@ void AnsaziModel::printToScreen()
 		}
 		std::cout << std::endl;
 	}
-	outputfile(countOfAgents);
 	cout << "Total Amount of Agents at end of year: "<<countOfAgents<<endl;
 	//cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
 }
+
+//reading from file functions (Niri)===========================================================
+std::vector<std::vector<std::string> > readcsv(std::string filename1)
+{
+    std::ifstream f;
+    f.open(filename1);
+    if(!f.is_open()) std::cout << "ERROR " ;
+    std::string rows, values;
+
+    std::vector< std::vector<std::string> > array;  // the 2D array
+    std::vector<std::string> v;                // array of values for one line only
+    //std::cout << "test 2 \n" << std::endl; 
+    getline(f,rows);
+
+    while ( getline(f,rows) )    // get next line in file
+    {
+        v.clear();
+        std::stringstream ss(rows);
+        while (getline(ss,values,','))  // break line into comma delimitted fields
+        {
+            v.push_back(values);  // add each field to the 1D array
+        }
+
+        array.push_back(v);  // add the 1D array to the 2D array
+    }
+
+    // print out what was read in------------------------------------------------
+    /*if(filename1=="src/water.csv")
+	{
+	    //std::cout << "test 2 \n" << endl; 
+	    for (size_t x=0; x<array.size(); ++x)
+	    {
+	        for (size_t y=0; y<array[x].size(); ++y)
+	        {
+	            std::cout << array[x][y] << "|"; // (separate fields by |)
+	        }
+	        std::cout << "\n";
+	    }
+	    cout << array[1][1];
+	}*/
+    return array;
+}
+
+
 
 void AnsaziModel::outputfile(int value)
 {
 	std::ofstream file;
 	if(currentYear == 800){
-		std::remove("household.csv"); 
+		std::remove("household.csv");
 	}
     file.open("household.csv",std::ios::app);
     file << value << std::endl;
