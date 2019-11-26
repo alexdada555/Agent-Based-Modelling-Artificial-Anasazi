@@ -236,7 +236,7 @@ void AnsaziModel::removeAgent()
 bool AnsaziModel::move(MaizeField* Mit, Agent* it){
 	std::vector<MaizeField*> MaizeFieldList;
 	std::vector<Agent*> agentList;
-	bool selectionA = false, selectionB = true; //Selection A makes sure there's a clear space and selection B makes sure there's enough maize being produced. 
+	bool selectionA = false, selectionB = false; //Selection A makes sure there's a clear space and selection B makes sure there's enough maize being produced. 
 
 	//Initialise random numbers 
 	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
@@ -244,15 +244,28 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it){
 
 	//Find random location
 	int xMLoc = gen4.next(); int yMLoc = gen5.next();
-	do{
+
+	do
+	{
 		agentList.clear();
 		MaizeFieldList.clear(); 
 		xMLoc = gen4.next(); yMLoc = gen5.next();
 		discreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), agentList);
 		MdiscreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), MaizeFieldList);
 		if(agentList.size()==0&&MaizeFieldList.size()==0)
+		{
 			selectionA = true;
-	}while (!selectionA /*&& selectionB==false*/);
+		}
+
+		x = droughtindex(currentYear,xMLoc,xMLoc);
+		Mit->getAttributes(MaizeFieldData1, MaizeFieldData2);
+		Mit->MaizeProduction(x);
+		if(Mit->currentYield > 800))
+		{
+			selectionB = true;
+		}
+	}
+	while (!selectionA && !selectionB);
 	repast::Point<int> MaizeLocation(xMLoc, yMLoc);
 	MdiscreteSpace->moveTo(Mit -> getId(), MaizeLocation);
 	std::cout<<"MaizeField moved to location:"<<Mit -> getId()<<MaizeLocation<<endl;
