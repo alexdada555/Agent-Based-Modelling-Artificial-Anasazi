@@ -21,262 +21,259 @@
 #include "Model.h"
 std::vector<std::vector<std::string> > readcsv(std::string);
 int droughtindex(int year, std::string xaxis, std::string yaxis);
-int waterlocation(int year1, std::string xaxis1, std::string yaxis1);
+bool waterlocation(int year1, std::string xaxis1, std::string yaxis1);
 
 
 AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm): context(comm), Mcontext(comm)
 {
-	props = new repast::Properties(propsFile, argc, argv, comm);								//Initialise Repast property files 
+    props = new repast::Properties(propsFile, argc, argv, comm);                                //Initialise Repast property files
 
-	stopAt = repast::strToInt(props->getProperty("stop.at"));									//Fetch the stop at value from model.props file
-	countOfAgents = repast::strToInt(props->getProperty("count.of.agents"));					//Fetch the count of agents from the model.props file 
-	boardSizex = repast::strToInt(props->getProperty("board.sizex"));								//Fetch the board size property from model.props 
-	boardSizey = repast::strToInt(props->getProperty("board.sizey"));								//Fetch the board size property from model.props 
-	currentYear = repast::strToInt(props->getProperty("startYear"));							//Set the start year for the simulation
-	deathAge = repast::strToInt(props->getProperty("deathAge"));								//Get the death age 
+    stopAt = repast::strToInt(props->getProperty("stop.at"));                                    //Fetch the stop at value from model.props file
+    countOfAgents = repast::strToInt(props->getProperty("count.of.agents"));                    //Fetch the count of agents from the model.props file
+    boardSizex = repast::strToInt(props->getProperty("board.sizex"));                                //Fetch the board size property from model.props
+    boardSizey = repast::strToInt(props->getProperty("board.sizey"));                                //Fetch the board size property from model.props
+    currentYear = repast::strToInt(props->getProperty("startYear"));                            //Set the start year for the simulation
+    deathAge = repast::strToInt(props->getProperty("deathAge"));                                //Get the death age
 
-    MaizeFieldData1 = 1;																		//repast::strToFloat(props->getProperty("harvest.adjustment.level"));
-    MaizeFieldData2 = 0.1;																		//repast::strToFloat(props->getProperty("sigmaahv"));
-	
+    MaizeFieldData1 = 1;                                                                        //repast::strToFloat(props->getProperty("harvest.adjustment.level"));
+    MaizeFieldData2 = 0.1;                                                                        //repast::strToFloat(props->getProperty("sigmaahv"));
+    watertest= waterlocation(1000,"44","96");
+    cout << "water is : " <<  watertest << "\n" ;
 
-	currentId = countOfAgents; 
 
-	initializeRandom(*props, comm);																	
+    currentId = countOfAgents;
 
-	//Init the shared space
-	repast::Point<double> origin(0,0);															//Shared Space Starts at (x,y)
-	repast::Point<double> extent(boardSizex,boardSizey);										//Shared Space stops at (x,y) 
-	repast::GridDimensions gd(origin, extent);													//Shared Space defined as (start,stop)
-	
-	std::vector<int> processDims;
-	processDims.push_back(1);																	//How the process is split across cores 1 by 1 currently 
-	processDims.push_back(1);																	
-	
-	discreteSpace = new repast::SharedDiscreteSpace<Agent, repast::StrictBorders, repast::SimpleAdder<Agent> >("AgentDiscreteSpace", gd, processDims, 0, comm); //Initialise the discrete space, "Strict border may change to wrap around borders"
-	MdiscreteSpace = new repast::SharedDiscreteSpace<MaizeField, repast::StrictBorders, repast::SimpleAdder<MaizeField> >("MaizeFieldDiscreteSpace", gd, processDims, 0, comm); //Initialise the discrete space, "Strict border may change to wrap around borders"
-	
-	context.addProjection(discreteSpace); 	
-	Mcontext.addProjection(MdiscreteSpace);
+    initializeRandom(*props, comm);                                                                    
 
-	//Load predifined files 
-	maps = readcsv("src/map.csv");																//Save array to model
-	hydro = readcsv("src/hydro.csv");	
-	water = readcsv("src/water.csv");
-	pdsi = readcsv("src/pdsi.csv");
+    //Init the shared space
+    repast::Point<double> origin(0,0);                                                            //Shared Space Starts at (x,y)
+    repast::Point<double> extent(boardSizex,boardSizey);                                        //Shared Space stops at (x,y)
+    repast::GridDimensions gd(origin, extent);                                                    //Shared Space defined as (start,stop)
+    
+    std::vector<int> processDims;
+    processDims.push_back(1);                                                                    //How the process is split across cores 1 by 1 currently
+    processDims.push_back(1);                                                                    
+    
+    discreteSpace = new repast::SharedDiscreteSpace<Agent, repast::StrictBorders, repast::SimpleAdder<Agent> >("AgentDiscreteSpace", gd, processDims, 0, comm); //Initialise the discrete space, "Strict border may change to wrap around borders"
+    MdiscreteSpace = new repast::SharedDiscreteSpace<MaizeField, repast::StrictBorders, repast::SimpleAdder<MaizeField> >("MaizeFieldDiscreteSpace", gd, processDims, 0, comm); //Initialise the discrete space, "Strict border may change to wrap around borders"
+    
+    context.addProjection(discreteSpace);     
+    Mcontext.addProjection(MdiscreteSpace);
+
+    //Load predifined files
+    maps = readcsv("src/map.csv");                                                                //Save array to model
+    hydro = readcsv("src/hydro.csv");    
+    //water = readcsv("src/water.csv");
+    pdsi = readcsv("src/pdsi.csv");
 }
 
 AnsaziModel::~AnsaziModel()
 {
-	delete props;
-	//delete agent;
-	//delete maizeField;
+    delete props;
+    //delete agent;
+    //delete maizeField;
 }
 
 void AnsaziModel::doPerTick()
 {
 
-	cout << "Start of tick ------------------------------------------" << endl; 
-	cout << "Current Year: " << currentYear << endl; 
+    cout << "Start of tick ------------------------------------------" << endl;
+    cout << "Current Year: " << currentYear << endl;
 
-	removeAgent();
-	fissionProcess(); 
-	if(currentYear==800){
-		printToScreen();
-	}
-	cout << "=End of tick --------------------------------------------" << endl;
-	currentYear++;
+    removeAgent();
+    fissionProcess();
+    if(currentYear==800){
+        printToScreen();
+    }
+    cout << "=End of tick --------------------------------------------" << endl;
+    currentYear++;
 }
 
 void AnsaziModel::initSchedule(repast::ScheduleRunner& runner)
 {
-	runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<AnsaziModel> (this, &AnsaziModel::doPerTick)));
-	runner.scheduleStop(stopAt);
+    runner.scheduleEvent(1, 1, repast::Schedule::FunctorPtr(new repast::MethodFunctor<AnsaziModel> (this, &AnsaziModel::doPerTick)));
+    runner.scheduleStop(stopAt);
 }
 
 void AnsaziModel::initAgents()
 {
-	int rank = repast::RepastProcess::instance()->rank();
+    int rank = repast::RepastProcess::instance()->rank();
 
-	int currentmin=0;                                                                                                                          															
-	int currentmax=30;
-	int fertilemin=16;
-	int fertilemax=30;
-	
+    int currentmin=0;                                                                                                                                                                                      
+    int currentmax=30;
+    int fertilemin=16;
+    int fertilemax=30;
+    
 
-	repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(currentmin, currentmax);
-	repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(fertilemin, fertilemax);
-	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
-	repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
-	std::cout<<"=====================================Test 1 ====================="<<std::endl;
-	std::cout<<"----------------------------------Initialisng Agents-------------"<<std::endl;
+    repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(currentmin, currentmax);
+    repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(fertilemin, fertilemax);
+    repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
+    repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
+    std::cout<<"=====================================Test 1 ====================="<<std::endl;
+    std::cout<<"----------------------------------Initialisng Agents-------------"<<std::endl;
 
-	for(int i=0 ;i<countOfAgents;i++)//13 agents initially then one made ourselves for testing
-	{      
-		std::cout<<"NewAgent----------------------"<<std::endl;   
-		std::vector<Agent*> agentList;
-		std::vector<MaizeField*> MaizeFieldList;
-		//Load random values to initilaise agents
-		int initialAge=gen2.next();
-		int infertileAge=30;
-		int fertileAge = 16;
+    for(int i=0 ;i<countOfAgents;i++)//13 agents initially then one made ourselves for testing
+    {      
+        std::cout<<"NewAgent----------------------"<<std::endl;   
+        std::vector<Agent*> agentList;
+        std::vector<MaizeField*> MaizeFieldList;
+        //Load random values to initilaise agents
+        int initialAge=gen2.next();
+        int infertileAge=30;
+        int fertileAge = 16;
 
-		int xLoc = gen4.next(); int yLoc = gen5.next();
-		int xMLoc = gen4.next(); int yMLoc = gen5.next();
+        int xLoc = gen4.next(); int yLoc = gen5.next();
+        int xMLoc = gen4.next(); int yMLoc = gen5.next();
 
-		repast::Point<int> initialLocation(xLoc, yLoc);		//Give agent a location
-		repast::Point<int> initialMaizeLocation(xMLoc, yMLoc);		//Give MaizeField a location
+        repast::Point<int> initialLocation(xLoc, yLoc);        //Give agent a location
+        repast::Point<int> initialMaizeLocation(xMLoc, yMLoc);        //Give MaizeField a location
 
-		repast::AgentId Maizeid(i, rank, 0);						//Give agent a unique ID
-		repast::AgentId id(i, rank, 0);						//Give agent a unique ID
-		
-		id.currentRank(rank);
-		Maizeid.currentRank(rank);
+        repast::AgentId Maizeid(i, rank, 0);                        //Give agent a unique ID
+        repast::AgentId id(i, rank, 0);                        //Give agent a unique ID
+        
+        id.currentRank(rank);
+        Maizeid.currentRank(rank);
 
-		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge,xMLoc,yMLoc); //Create new agent with defined values
-		MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);    //MaizeFieldData
-		std::cout<<"Agent ID: "<<id<<std::endl;
-		std::cout<<"MaizeID ID: "<<id<<std::endl;
-		//agent->maizeID = i;
-		context.addAgent(agent);
-		Mcontext.addAgent(maizeField);
-		std::cout<<"Agent ID: "<<id<<std::endl;
-		std::cout<<"Agent Loc: "<<initialLocation<<std::endl; 
-		std::cout<<"Death Age: "<<deathAge<<std::endl; 
-		//cout<<"Initial location: "<<initialLocation<<endl;
-		discreteSpace->moveTo(id, initialLocation);
-		MdiscreteSpace->moveTo(Maizeid, initialMaizeLocation);
-	}
+        Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge,xMLoc,yMLoc); //Create new agent with defined values
+        MaizeField* maizeField = new MaizeField(Maizeid, MaizeFieldData1, MaizeFieldData2);    //MaizeFieldData
+        
+        context.addAgent(agent);
+        Mcontext.addAgent(maizeField);
+        std::cout<<"Agent ID: "<<id<<std::endl;
+        std::cout<<"Agent Loc: "<<initialLocation<<std::endl;
+        std::cout<<"Death Age: "<<deathAge<<std::endl;
+        //cout<<"Initial location: "<<initialLocation<<endl;
+        discreteSpace->moveTo(id, initialLocation);
+        MdiscreteSpace->moveTo(Maizeid, initialMaizeLocation);
+    }
 }
 
 void AnsaziModel::removeAgent()
 {
-	std::vector<Agent*> agents;
-	std::vector<MaizeField*> maizeFields;
+    std::vector<Agent*> agents;
+    std::vector<MaizeField*> maizeFields;
 
-	context.selectAgents(repast::SharedContext<Agent>::LOCAL, countOfAgents, agents);
-	Mcontext.selectAgents(repast::SharedContext<MaizeField>::LOCAL, countOfAgents, maizeFields);
+    context.selectAgents(repast::SharedContext<Agent>::LOCAL, countOfAgents, agents);
+    Mcontext.selectAgents(repast::SharedContext<MaizeField>::LOCAL, countOfAgents, maizeFields);
 
-	std::vector<Agent*>::iterator it = agents.begin();
-	std::vector<MaizeField*>::iterator Mit = maizeFields.begin();
+    std::vector<Agent*>::iterator it = agents.begin();
+    std::vector<MaizeField*>::iterator Mit = maizeFields.begin();
 
-	it = agents.begin();
-	Mit = maizeFields.begin();
-	std::cout<<"================================= TEST 5 ================================="<<std::endl;
-	std::cout<<"================================= TEST 4 ================================="<<std::endl;
-	while(it != agents.end()&& Mit != maizeFields.end())
-	{
-		//(*it) -> printAttributes();  
-		if ((*it)->checkDeath())
-		{
-			//std::cout<<"The Agent ID is: "<<(*it) -> getId().id()<<std::endl;
-			(*it) -> printAttributes(); 	
-			std::cout <<"!Deleted Curent Age as death age met!-----------------------"<<std::endl;
+    it = agents.begin();
+    Mit = maizeFields.begin();
+    std::cout<<"================================= TEST 5 ================================="<<std::endl;
+    std::cout<<"================================= TEST 4 ================================="<<std::endl;
+    while(it != agents.end()&& Mit != maizeFields.end())
+    {
+        //(*it) -> printAttributes();  
+        if ((*it)->checkDeath())
+        {
+            //std::cout<<"The Agent ID is: "<<(*it) -> getId().id()<<std::endl;
+            (*it) -> printAttributes();     
+            std::cout <<"!Deleted Curent Age as death age met!-----------------------"<<std::endl;
 
-			int maizeLoc[2];
+            int maizeLoc[2];
 
-			maizeLoc[0] = (*it) -> getMaizeLocX();
-			maizeLoc[1] = (*it) -> getMaizeLocY();
-			
-			//MdiscreteSpace->getObjectsAt(repast::Point<int>(maizeLoc[0], maizeLoc[1]), maizeFields);
-			
-			//std::cout <<"!Deleted Curent MaizeField"<< (*Mit) -> getId().id()<<" as death age met!"<<std::endl; 
-			//std::cout <<"Agent was in location : "<<
-			//int id = (*it) -> getId().id(); 
-    		//repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
-			std::cout<<"Agent ID at death: "<<(*it) -> getId()<<std::endl;
-		    std::cout<<"MaizeID ID at death: "<<(*Mit) -> getId()<<std::endl;
-    		context.removeAgent((*it) -> getId());
-			Mcontext.removeAgent((*Mit) -> getId());
-    		countOfAgents --;
-    	}
-		else
-		{
-			(*Mit)->getAttributes(MaizeFieldData1, MaizeFieldData2);
-			(*it)->Maizeloc2str();
-			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
-			(*Mit)->MaizeProduction(x);
-			(*it)->updateMaizeStock((*Mit)->currentYield);
-			std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
-			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
-			if((*it)->checkMaize() == 1)
-			{
-				std::cout<<"This is The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
+            maizeLoc[0] = (*it) -> getMaizeLocX();
+            maizeLoc[1] = (*it) -> getMaizeLocY();
+            
+            //MdiscreteSpace->getObjectsAt(repast::Point<int>(maizeLoc[0], maizeLoc[1]), maizeFields);
+            
+            //std::cout <<"!Deleted Curent MaizeField"<< (*Mit) -> getId().id()<<" as death age met!"<<std::endl;
+            //std::cout <<"Agent was in location : "<<
+            //int id = (*it) -> getId().id();
+            repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
+            repast::RepastProcess::instance()->agentRemoved((*Mit) -> getId());
 
-				//repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
-				
-    			context.removeAgent((*it) -> getId());
-				Mcontext.removeAgent((*Mit) -> getId());
-				
-				//std::cout<<<<(*Mit) -> getId()<<std::endl;
-    			countOfAgents --;
-			}
-		}
-		it++;
-		Mit++;
-	}
+            context.removeAgent((*it) -> getId());
+            Mcontext.removeAgent((*Mit) -> getId());
+            countOfAgents --;
+        }
+        else
+        {
+            (*Mit)->getAttributes(MaizeFieldData1, MaizeFieldData2);
+            (*it)->Maizeloc2str();
+            x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
+            (*Mit)->MaizeProduction(x);
+            (*it)->updateMaizeStock((*Mit)->currentYield);
+            std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
+            /*if((*it)->checkMaize() == 1)
+            {
+                std::cout<<"This is The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
+
+                repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
+                repast::RepastProcess::instance()->agentRemoved((*Mit) -> getId());
+
+                context.removeAgent((*it) -> getId());
+                Mcontext.removeAgent((*Mit) -> getId());
+                
+                //std::cout<<<<(*Mit) -> getId()<<std::endl;
+                countOfAgents --;
+            }*/
+        }
+        it++;
+        Mit++;
+    }
 }
 
 void AnsaziModel::fissionProcess()
 {
-	std::vector<Agent*> agents;
-	std::vector<MaizeField*> MaizeFieldList;
+    std::vector<Agent*> agents;
+    std::vector<MaizeField*> MaizeFieldList;
 
-	int i=0; 
-	context.selectAgents(repast::SharedContext<Agent>::LOCAL, countOfAgents, agents);
-	std::vector<Agent*>::iterator it = agents.begin();
-	it = agents.begin();
-	//std::cout<<"----------------Fission Process----------------------------"<<std::endl; 
-	while(it != agents.end())
-	{
-		//(*it) -> printAttributes();  
-		if ((*it)->fissionReady())
-		{
-    		//std::cout<<"!Fission occurring Adding an agent!---------------------------"<<std::endl; 
-			//std::vector<Agent*> agentList;
-			
-			//Load random values to initilaise agents
+    int i=0;
+    context.selectAgents(repast::SharedContext<Agent>::LOCAL, countOfAgents, agents);
+    std::vector<Agent*>::iterator it = agents.begin();
+    it = agents.begin();
+    //std::cout<<"----------------Fission Process----------------------------"<<std::endl;
+    while(it != agents.end())
+    {
+        //(*it) -> printAttributes();  
+        if ((*it)->fissionReady())
+        {
+            //std::cout<<"!Fission occurring Adding an agent!---------------------------"<<std::endl;
+            //std::vector<Agent*> agentList;
+            
+            //Load random values to initilaise agents
 
-			repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
-			repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
+    repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
+    repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
+            int initialAge= 0;
+            int infertileAge=30;
+            int xLoc = gen4.next(); int yLoc = gen5.next();
+            int xMLoc = gen4.next(); int yMLoc = gen5.next();
+            int fertileAge = 16;
+            int rank = repast::RepastProcess::instance()->rank();
+            
+            //Add info to simulation
+            repast::Point<int> initialLocation(xLoc, yLoc);        //Give agent a location
+            repast::Point<int> initialMaizeLocation(xMLoc, yMLoc);        //Give MaizeField a location
 
-			int initialAge= 0;
-			int infertileAge=30;
-			int fertileAge = 16;
+            repast::AgentId id(currentId, rank, 0);                        //Give agent a unique ID
+            repast::AgentId Maizeid(currentId, rank, 0);                //Give agent a unique ID
 
-			int xLoc = gen4.next(); int yLoc = gen5.next();
-			int xMLoc = gen4.next(); int yMLoc = gen5.next();
-			
-			int rank = repast::RepastProcess::instance()->rank();
-			
-			//Add info to simulation
-			repast::Point<int> initialLocation(xLoc, yLoc);		//Give agent a location
-			repast::Point<int> initialMaizeLocation(xMLoc, yMLoc);		//Give MaizeField a location
+            id.currentRank(rank);
 
-			repast::AgentId id(currentId, rank, 0);						//Give agent a unique ID
-			repast::AgentId Maizeid(currentId, rank, 0);				//Give agent a unique ID
+            int maizeLoc[2];
+            maizeLoc[0] = (*it) -> getMaizeLocX();
+            maizeLoc[1] = (*it) -> getMaizeLocY();
 
-			id.currentRank(rank);
+            Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge, maizeLoc[0], maizeLoc[1]); //Create new agent with defined values
+            MaizeField* maizeField = new MaizeField(Maizeid, MaizeFieldData1, MaizeFieldData2);  
 
-			int maizeLoc[2];
-			maizeLoc[0] = (*it) -> getMaizeLocX();
-			maizeLoc[1] = (*it) -> getMaizeLocY();
+            Mcontext.addAgent(maizeField);
+            context.addAgent(agent);
 
-			Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge, maizeLoc[0], maizeLoc[1]); //Create new agent with defined values
-			MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);  
-
-			context.addAgent(agent);
-			Mcontext.addAgent(maizeField);
-			
-			discreteSpace->moveTo(id, initialLocation);
-			MdiscreteSpace->moveTo(id, initialMaizeLocation);
-			countOfAgents ++; 
-			currentId ++;
-    	}
-    	//else
-    		//std::cout<<"Agent doesn't want to fission"<<std::endl;	
-		it++;
-		i ++; 
-	}
+            discreteSpace->moveTo(id, initialLocation);
+            MdiscreteSpace->moveTo(Maizeid, initialMaizeLocation);
+            countOfAgents ++;
+            currentId ++;
+        }
+        //else
+            //std::cout<<"Agent doesn't want to fission"<<std::endl;    
+        it++;
+        i ++;
+    }
 };
 
 std::vector<std::vector<std::string> > readcsv(std::string filename1)
@@ -288,7 +285,7 @@ std::vector<std::vector<std::string> > readcsv(std::string filename1)
 
     std::vector< std::vector<std::string> > array;  // the 2D array
     std::vector<std::string> v;                // array of values for one line only
-    //std::cout << "test 2 \n" << std::endl; 
+    //std::cout << "test 2 \n" << std::endl;
     getline(f,rows);
 
     while ( getline(f,rows) )    // get next line in file
@@ -305,97 +302,184 @@ std::vector<std::vector<std::string> > readcsv(std::string filename1)
 
     // print out what was read in------------------------------------------------
     /*if(filename1=="src/water.csv")
-	{
-	    //std::cout << "test 2 \n" << endl; 
-	    for (size_t x=0; x<array.size(); ++x)
-	    {
-	        for (size_t y=0; y<array[x].size(); ++y)
-	        {
-	            std::cout << array[x][y] << "|"; // (separate fields by |)
-	        }
-	        std::cout << "\n";
-	    }
-	    cout << array[1][1];
-	}*/
+    {
+        //std::cout << "test 2 \n" << endl;
+        for (size_t x=0; x<array.size(); ++x)
+        {
+            for (size_t y=0; y<array[x].size(); ++y)
+            {
+                std::cout << array[x][y] << "|"; // (separate fields by |)
+            }
+            std::cout << "\n";
+        }
+        cout << array[1][1];
+    }*/
     return array;
 }
 
-void AnsaziModel::printToScreen() 
+void AnsaziModel::printToScreen()
 {
-	//print board to screen
-	std::vector<Agent*> agentList;
-	std::vector<MaizeField*> MaizeFieldList;
-	std::cout<<"========================== TEST 2 =================================== "<<endl;
-	std::cout<<"========================== TEST 5 ================================="<<endl;
-	for (int i=0; i<=boardSizey+1; i++)
-	{
-		for (int j=0; j<=boardSizex+1; j++) 
-		{
-			if (i==0 || i==boardSizey+1)
-				std::cout << "-";
-			else if (j==0 || j==boardSizex+1)
-				
-			std::cout << "|";
-			else 
-			{
-				agentList.clear();
-				MaizeFieldList.clear();
+    //print board to screen
+    std::vector<Agent*> agentList;
+    std::vector<MaizeField*> MaizeFieldList;
+    std::cout<<"========================== TEST 2 =================================== "<<endl;
+    std::cout<<"========================== TEST 5 ================================="<<endl;
+    for (int i=0; i<=boardSizey+1; i++)
+    {
+        for (int j=0; j<=boardSizex+1; j++)
+        {
+            if (i==0 || i==boardSizey+1)
+                std::cout << "-";
+            else if (j==0 || j==boardSizex+1)
+                
+            std::cout << "|";
+            else
+            {
+                agentList.clear();
+                MaizeFieldList.clear();
 
-				discreteSpace->getObjectsAt(repast::Point<int>(j, i), agentList);
-				MdiscreteSpace->getObjectsAt(repast::Point<int>(j, i), MaizeFieldList);
-				//cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
-				if (agentList.size() > 1) 
-				{
-					std::cout << agentList.size();
-				}
-				else if (agentList.size() == 0)
-				{
-					if(MaizeFieldList.size() == 0)
-						std::cout << " ";
-				}
-				else if(agentList.size() != 0)
-				{
-					std::cout << "X";
-				}
-				if (MaizeFieldList.size() > 1) 
-				{
-					std::cout << MaizeFieldList.size();
-				}
+                discreteSpace->getObjectsAt(repast::Point<int>(j, i), agentList);
+                MdiscreteSpace->getObjectsAt(repast::Point<int>(j, i), MaizeFieldList);
+                //cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
+                if (agentList.size() > 1)
+                {
+                    std::cout << agentList.size();
+                }
+                else if (agentList.size() == 0)
+                {
+                    if(MaizeFieldList.size() == 0)
+                        std::cout << " ";
+                }
+                else if(agentList.size() != 0)
+                {
+                    std::cout << "X";
+                }
+                if (MaizeFieldList.size() > 1)
+                {
+                    std::cout << MaizeFieldList.size();
+                }
 
-				else if(MaizeFieldList.size() != 0) 
-				{
-					std::cout << "O";
-				}
-			}
-		}
-		std::cout << std::endl;
-	}
-	outputfile(countOfAgents);
-	cout << "Total Amount of Agents at end of year: "<<countOfAgents<<endl;
-	//cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
+                else if(MaizeFieldList.size() != 0)
+                {
+                    std::cout << "O";
+                }
+            }
+        }
+        std::cout << std::endl;
+    }
+    outputfile(countOfAgents);
+    cout << "Total Amount of Agents at end of year: "<<countOfAgents<<endl;
+    //cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
 }
 
 void AnsaziModel::outputfile(int value)
 {
-	std::ofstream file;
-	if(currentYear == 800){
-		std::remove("household.csv"); 
-	}
+    std::ofstream file;
+    if(currentYear == 800){
+        std::remove("household.csv");
+    }
     file.open("household.csv",std::ios::app);
     file << value << std::endl;
-    file.close(); 
+    file.close();
 }
 
-int waterlocation(int year1, std::string xaxis1, std::string yaxis1)
+bool waterlocation(int year1, std::string xaxis1, std::string yaxis1)
 {
-	std::vector< std::vector<std::string> > water;
+    std::vector< std::vector<std::string> > water, maps;
     water = readcsv("src/water.csv");    
-    year1 =year1 - 799;
-    int startdateint, enddateint;
+    maps = readcsv("src/map.csv");
+    year1 =year1;
+    std::string xax,yax, zone;
+    int startdateint, enddateint,typeint,existStreams=0, existAlluvium=0;
+    int y=0,x=0, x1=0,y1=0;
 
-   
+    xax = xaxis1.c_str();
+    yax = yaxis1.c_str();
+  
 
+    while((water.size()-1)!=y)
+    {
+        y++;
+        if(water[y][7] == yax && water[y][6] == xax)
+        {
+            break;
+        }
+    }
 
+    while(maps[y1][1] != yax )
+    {
+        y1++;
+        if(maps[y1][1] == yax && maps[y1][0] == xax)
+        {
+        break;
+        }
+        else if(maps[y1][1] == yax && maps[y1][0] != xax)
+        {
+            y1++;          
+        }
+    }
+
+    if(y==105)
+    {
+        if(water[y][7] != yax && water[y][6] != xax)
+        {
+        	return false;
+        }
+    }
+    typeint = atoi(water[y][3].c_str());
+    startdateint = atoi(water[y][4].c_str());
+    enddateint = atoi(water[y][5].c_str());
+    zone = maps[y1][3];
+
+    if(typeint==3)
+    {
+        if(startdateint<= year1 && enddateint >=year1)
+        {
+            return true; 
+        }
+        else
+        {
+        	return false; 
+        }
+    }
+    if(typeint==2)
+    {
+        return true;
+    }
+
+    if(typeint==1)
+    {
+        if((year1>=280 && year1 <360) || (year1>=800 && year1 <930) || (year1>=1300 && year1 <1450))
+        {
+            existStreams=1;
+        }
+        else
+        {
+            existStreams=0;         
+        }
+
+        if(((year1>=420) && (year1 <560 )) || ((year1>=630) && (year1 <680)) || ((year1>=980) && (year1 <1120)) || ((year1>=1180) && (year1 <1230)))
+        {
+            existAlluvium=1;
+        }
+        else
+        {
+            existAlluvium=0;
+        }
+        
+        if((existAlluvium==1) && ((zone == "\"General\"") || (zone =="\"North\"") || (zone == "\"Mid\"") || (zone == "\"Kinbiko\"")))
+        {
+        	return true;
+
+        }
+        if((existStreams == 1) && (zone =="\"Kinbiko\""))
+        {
+        	return true;
+        }
+
+    }
+
+    return false; 
 
 }
 
@@ -545,7 +629,7 @@ int droughtindex(int year, std::string xaxis, std::string yaxis)
             if(maps[y][1] == yax && maps[y][0] == xax)
             {
              break;
-  			}
+              }
             else if(maps[y][1] == yax && maps[y][0] != xax)
             {
                 y++;          
