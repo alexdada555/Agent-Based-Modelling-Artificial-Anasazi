@@ -35,7 +35,7 @@ bool Agent::checkDeath()
 
 bool Agent::checkMaize()
 {
-	expectedYield = maizeStock + previousYield[0]+previousYield[1];
+	expectedYield = maizeStock + previousYield[0] + previousYield[1];
 
 	if (expectedYield < 800)
 	{
@@ -83,7 +83,6 @@ void Agent::printAttributes()
 
 int Agent::getMaizeLocX()
 {
-
 	return maizeLocX; 
 }
 
@@ -102,7 +101,7 @@ void Agent::updateMaizeStock(int Yield)
 {	
 	if(tick > 2)
 	{
-		tick =0; 
+		tick = 0; 
 	}
 	else
 	{
@@ -110,10 +109,18 @@ void Agent::updateMaizeStock(int Yield)
 		if(Yield > 800)
 		{
 			previousYield[tick] += Yield-800;
+			if (previousYield[tick] < 0)
+			{
+				previousYield[tick] = 0;
+			}
 		}
 		else
 		{
-			previousYield[tick] += 0;
+			previousYield[tick] -= 800;
+			if (previousYield[tick] < 0)
+			{
+				previousYield[tick] = 0;
+			}
 		}
 		tick=tick+1; 
 	}
