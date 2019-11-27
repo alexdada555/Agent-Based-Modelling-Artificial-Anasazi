@@ -30,7 +30,7 @@ private:
     int maizeLocX;
     int maizeLocY;
 
-    int previousYield[3]={2000,0,0};
+    int previousYield[3]={0,0,0};
     int houseLocation[2];
 
     int tick=0; 
