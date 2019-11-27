@@ -21,11 +21,17 @@
 #include "Model.h"
 std::vector<std::vector<std::string> > readcsv(std::string);
 int droughtindex(int year, std::string xaxis, std::string yaxis);
-bool waterlocation(int year1, std::string xaxis1, std::string yaxis1);
+
 
 
 AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm): context(comm), Mcontext(comm)
 {
+	//Load predifined files 	
+	maps = readcsv("src/map.csv");																//Save array to model
+	hydro = readcsv("src/hydro.csv");	
+	water = readcsv("src/water.csv");
+	pdsi = readcsv("src/pdsi.csv");
+
 	props = new repast::Properties(propsFile, argc, argv, comm);								//Initialise Repast property files 
 
 	stopAt = repast::strToInt(props->getProperty("stop.at"));									//Fetch the stop at value from model.props file
@@ -59,11 +65,8 @@ AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mp
 	context.addProjection(discreteSpace); 	
 	Mcontext.addProjection(MdiscreteSpace);
 
-	//Load predifined files 
-	maps = readcsv("src/map.csv");																//Save array to model
-	hydro = readcsv("src/hydro.csv");	
-	water = readcsv("src/water.csv");
-	pdsi = readcsv("src/pdsi.csv");
+
+
 }
 
 AnsaziModel::~AnsaziModel()
@@ -76,8 +79,8 @@ AnsaziModel::~AnsaziModel()
 void AnsaziModel::doPerTick()
 {
 
-	cout << "Start of tick ------------------------------------------" << endl; 
-	cout << "Current Year: " << currentYear << endl; 
+	//cout << "Start of tick ------------------------------------------" << endl; 
+	//cout << "Current Year: " << currentYear << endl; 
 	if(countOfAgents!= 0) 
 		removeAgent();
 	if(countOfAgents!= 0)
@@ -85,9 +88,10 @@ void AnsaziModel::doPerTick()
 		fissionProcess();
 	}
 	else 
-		std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
+		//std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
 	
-	if(currentYear == 800 || currentYear ==809)
+	std::cout<< currentYear << "	:current year \n";
+	if(currentYear == 800 || currentYear ==999)
 		printToScreen();
 	outputfile(countOfAgents);
 	currentYear++;
@@ -212,13 +216,13 @@ void AnsaziModel::removeAgent()
 			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
 			(*Mit)->MaizeProduction(x);
 			(*it)->updateMaizeStock((*Mit)->currentYield);
-			std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
-			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
+			//std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
+			//std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
 			//std::cout<<"Check if enough maize"<<std::endl;
 			if((*it)->checkMaize() == 1)
 			{
 				//std::cout<<"The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
-				std::cout<<"Trying to move agent and maize field: "<<(*it) -> getId()<<(*Mit) -> getId()<<std::endl;
+				//std::cout<<"Trying to move agent and maize field: "<<(*it) -> getId()<<(*Mit) -> getId()<<std::endl;
 				//std::cout<<"Killing maize: "<<(*Mit) -> getId()<<std::endl;
 				bool kill = false; 
 				kill = move((*Mit),(*it));
@@ -381,11 +385,25 @@ void AnsaziModel::fissionProcess()
 
 void AnsaziModel::printToScreen() 
 {
-	//print board to screen
+//print board to screen
 	std::vector<Agent*> agentList;
 	std::vector<MaizeField*> MaizeFieldList;
+	std::stringstream xs,ys;
+	std::string xx,yy; 
+	int pow =50;
+	int mow = 50; 
+	xx = std::to_string(pow);
+	yy = std::to_string(mow);
+	//cout << xx << "\n" ;
+	//cout << yy << "\n" ;
+
 	//std::cout<<"========================== TEST 2 =================================== "<<endl;
 	//std::cout<<"========================== TEST 5 ================================="<<endl;
+	//std::cout << "water verification test\n ";
+
+
+	std::cout << waterlocation(currentYear, xx,yy);
+
 	for (int i=0; i<=boardSizey+1; i++)
 	{
 		for (int j=0; j<=boardSizex+1; j++) 
@@ -403,33 +421,46 @@ void AnsaziModel::printToScreen()
 				discreteSpace->getObjectsAt(repast::Point<int>(j, i), agentList);
 				MdiscreteSpace->getObjectsAt(repast::Point<int>(j, i), MaizeFieldList);
 				//cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
-				if (agentList.size() > 1) 
+			
+				xx = std::to_string(j);
+				yy = std::to_string(i);
+				if (agentList.size() > 1 || MaizeFieldList.size() >1)
 				{
-					std::cout << agentList.size();
+					if(agentList.size() >1 )
+						std::cout << agentList.size();
+					else
+						std::cout << MaizeFieldList.size();
 				}
-				else if (agentList.size() == 0)
+				
+
+				if (agentList.size() == 0 && MaizeFieldList.size() == 0 && waterlocation(currentYear, xx, yy) == 0)
 				{
-					if(MaizeFieldList.size() == 0)
 						std::cout << " ";
+
 				}
-				else if(agentList.size() != 0)
+				if (MaizeFieldList.size() == 1)
 				{
-					std::cout << "X";
+						std::cout << "0";
+
 				}
-				if (MaizeFieldList.size() > 1) 
+				if (waterlocation(currentYear, xx, yy) == 1)
 				{
-					std::cout << MaizeFieldList.size();
+						std::cout << "W";
+
+				}
+				if (agentList.size() == 1)
+				{
+						std::cout << "X";
+
 				}
 
-				else if(MaizeFieldList.size() != 0) 
-				{
-					std::cout << "O";
-				}
+
+
 			}
 		}
 		std::cout << std::endl;
 	}
-	cout << "Total Amount of Agents at end of year: "<<countOfAgents<<endl;
+	//cout << "Total Amount of Agents at end of year: "<<countOfAgents<<endl;
 	//cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
 }
 
@@ -458,20 +489,6 @@ std::vector<std::vector<std::string> > readcsv(std::string filename1)
         array.push_back(v);  // add the 1D array to the 2D array
     }
 
-    // print out what was read in------------------------------------------------
-    /*if(filename1=="src/water.csv")
-	{
-	    //std::cout << "test 2 \n" << endl; 
-	    for (size_t x=0; x<array.size(); ++x)
-	    {
-	        for (size_t y=0; y<array[x].size(); ++y)
-	        {
-	            std::cout << array[x][y] << "|"; // (separate fields by |)
-	        }
-	        std::cout << "\n";
-	    }
-	    cout << array[1][1];
-	}*/
     return array;
 }
 
@@ -488,11 +505,8 @@ void AnsaziModel::outputfile(int value)
     file.close(); 
 }
 
-bool waterlocation(int year1, std::string xaxis1, std::string yaxis1)
+bool AnsaziModel::waterlocation(int year1, std::string xaxis1, std::string yaxis1)
 {
-    std::vector< std::vector<std::string> > water, maps;
-    water = readcsv("src/water.csv");    
-    maps = readcsv("src/map.csv");
     year1 =year1;
     std::string xax,yax, zone;
     int startdateint, enddateint,typeint,existStreams=0, existAlluvium=0;
@@ -511,26 +525,17 @@ bool waterlocation(int year1, std::string xaxis1, std::string yaxis1)
         }
     }
 
-    while(maps[y1][1] != yax )
+    while(maps.size()-1 != y1 )
     {
         y1++;
         if(maps[y1][1] == yax && maps[y1][0] == xax)
         {
-        break;
-        }
-        else if(maps[y1][1] == yax && maps[y1][0] != xax)
-        {
-            y1++;          
+        	break;
         }
     }
 
-    if(y==105)
-    {
-        if(water[y][7] != yax && water[y][6] != xax)
-        {
-        	return false;
-        }
-    }
+
+
     typeint = atoi(water[y][3].c_str());
     startdateint = atoi(water[y][4].c_str());
     enddateint = atoi(water[y][5].c_str());
