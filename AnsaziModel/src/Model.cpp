@@ -216,17 +216,19 @@ void AnsaziModel::removeAgent()
 			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
 			(*Mit)->MaizeProduction(x);
 			(*it)->updateMaizeStock((*Mit)->currentYield);
-			//std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
-			//std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
-			//std::cout<<"Check if enough maize"<<std::endl;
+			std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
+			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
+			
 			if((*it)->checkMaize() == 1)
 			{
-				//std::cout<<"The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
-				//std::cout<<"Trying to move agent and maize field: "<<(*it) -> getId()<<(*Mit) -> getId()<<std::endl;
-				//std::cout<<"Killing maize: "<<(*Mit) -> getId()<<std::endl;
+				std::cout<<"The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
+				std::cout<<"Trying to move agent and maize field: "<<(*it) -> getId()<<(*Mit) -> getId()<<std::endl;
+				
 				bool kill = false; 
 				kill = move((*Mit),(*it));
-				if(kill){
+				if(kill)
+				{
+					std::cout<<"Killing maize: "<<(*Mit) -> getId()<<std::endl;
 					repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
 	    			context.removeAgent((*it) -> getId());
 					Mcontext.removeAgent((*Mit) -> getId());
@@ -238,7 +240,8 @@ void AnsaziModel::removeAgent()
 	}
 }                 						
 
-bool AnsaziModel::move(MaizeField* Mit, Agent* it){
+bool AnsaziModel::move(MaizeField* Mit, Agent* it)
+{
 	std::vector<MaizeField*> MaizeFieldList;
 	std::vector<Agent*> agentList;
 	bool selectionA = false, selectionB = true; //Selection A makes sure there's a clear space and selection B makes sure there's enough maize being produced. 
@@ -259,27 +262,46 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it){
 			MaizeFieldList.clear();
 			discreteSpace->getObjectsAt(repast::Point<int>(i, j), agentList);
 			MdiscreteSpace->getObjectsAt(repast::Point<int>(i, j), MaizeFieldList);
-			if(agentList.size()==0&&MaizeFieldList.size()==0)
+			
+			if(agentList.size() == 0 && MaizeFieldList.size() == 0)
 			{
-				int xMLoc = i;
-				int yMLoc = j; 
-				end = true; 
-				break;
-			}
+				x = droughtindex(currentYear,std::to_string(i),std::to_string(j));
+				Mit->MaizeProduction(x);
+				int yieldcurrent = Mit->currentYield;
+				std::cout<<"Yield at location:"<< i;
+				std::cout<<","<<j;
+				std::cout<<" = "<<yieldcurrent<<endl;
+				
+				if(yieldcurrent > 800)
+				{
+					std::cout<<" Over 800 found folks"<<endl;
+					xMLoc = i;
+					yMLoc = j; 
+					end == true;
+					goto skip_loop;
+				}
+			}	
 		}
 		if(end == true)
 			break;
 	}
-
+	skip_loop:
 	if(xMLoc == -1)
 	{
 		return true; 
 	}
 	else
 	{
-		repast::Point<int> MaizeLocation(xMLoc, yMLoc);
-		MdiscreteSpace->moveTo(Mit -> getId(), MaizeLocation);
-		//std::cout<<"MaizeField moved to location:"<< Mit -> getId() <<MaizeLocation<<endl;
+		//x = droughtindex(currentYear,std::to_string(xMLoc),std::to_string(yMLoc));
+		//Mit->MaizeProduction(x);
+		//if(Mit->currentYield > 800)
+		//{
+			repast::Point<int> MaizeLocation(xMLoc, yMLoc);
+			MdiscreteSpace->moveTo(Mit -> getId(), MaizeLocation);
+			std::cout<<"MaizeField moved to location:"<< Mit -> getId() <<MaizeLocation<<endl;
+		//}
+		
+		
 		//Move the agent  
 		//std::cout<<"Trying Locations:"; 
 		std::vector<int> gXloc; 
@@ -460,8 +482,8 @@ void AnsaziModel::printToScreen()
 		}
 		std::cout << std::endl;
 	}
-	//cout << "Total Amount of Agents at end of year: "<<countOfAgents<<endl;
-	//cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
+	cout << "Total Amount of Agents at end of year: "<<countOfAgents<<endl;
+	cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
 }
 
 //reading from file functions (Niri)===========================================================
