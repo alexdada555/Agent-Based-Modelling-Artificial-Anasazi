@@ -20,12 +20,20 @@
 
 #include "Model.h"
 std::vector<std::vector<std::string> > readcsv(std::string);
-int droughtindex(int year, std::string xaxis, std::string yaxis);
-bool waterlocation(int year1, std::string xaxis1, std::string yaxis1);
+
+int Mx; 
+int My; 
+int fullCheck; 
 
 
 AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm): context(comm), Mcontext(comm)
 {
+	//Load predifined files 	
+	maps = readcsv("src/map.csv");																//Save array to model
+	hydro = readcsv("src/hydro.csv");	
+	water = readcsv("src/water.csv");
+	pdsi = readcsv("src/pdsi.csv");
+
 	props = new repast::Properties(propsFile, argc, argv, comm);								//Initialise Repast property files 
 
 	stopAt = repast::strToInt(props->getProperty("stop.at"));									//Fetch the stop at value from model.props file
@@ -59,11 +67,8 @@ AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mp
 	context.addProjection(discreteSpace); 	
 	Mcontext.addProjection(MdiscreteSpace);
 
-	//Load predifined files 
-	maps = readcsv("src/map.csv");																//Save array to model
-	hydro = readcsv("src/hydro.csv");	
-	water = readcsv("src/water.csv");
-	pdsi = readcsv("src/pdsi.csv");
+
+
 }
 
 AnsaziModel::~AnsaziModel()
@@ -76,18 +81,20 @@ AnsaziModel::~AnsaziModel()
 void AnsaziModel::doPerTick()
 {
 
-	cout << "Start of tick ------------------------------------------" << endl; 
-	cout << "Current Year: " << currentYear << endl; 
+	//cout << "Start of tick ------------------------------------------" << endl; 
+	//cout << "Current Year: " << currentYear << endl; 
+	fullCheck = 0; 
 	if(countOfAgents!= 0) 
-		removeAgent();
-	if(countOfAgents!= 0)
 	{
+		removeAgent();
 		fissionProcess();
 	}
-	else 
-		std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
-	
-	if(currentYear == 800 || currentYear ==809)
+	//else 
+		//std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
+	Mx = 0; 
+	My= 0; 
+	std::cout<< currentYear << "	:current year \n";
+	if(currentYear == 800 || currentYear ==(800+stopAt-1))
 		printToScreen();
 	outputfile(countOfAgents);
 	currentYear++;
@@ -125,9 +132,39 @@ void AnsaziModel::initAgents()
 		int initialAge=gen2.next();
 		int infertileAge=30;
 		int fertileAge = 16;
-
 		int xLoc = gen4.next(); int yLoc = gen5.next();
 		int xMLoc = gen4.next(); int yMLoc = gen5.next();
+		
+		do{
+			MaizeFieldList.clear(); 
+			xLoc = gen4.next(); yLoc = gen5.next();
+			MdiscreteSpace->getObjectsAt(repast::Point<int>(xLoc, yLoc), MaizeFieldList);
+		}while (MaizeFieldList.size()!=0);	
+	
+		
+		for(int i = -10; i<=10; i++)
+		{
+			int xMLoc = xLoc+i;
+			if(xLoc>=0&&xLoc<80)
+			{
+				for(int j = -10; j<=10 ; j++)
+				{	
+					int yMLoc = yLoc+j; 
+					if(yLoc>=0&&yLoc<120)
+					{	
+						MaizeFieldList.clear();
+						agentList.clear();
+						discreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), agentList);
+						MdiscreteSpace->getObjectsAt(repast::Point<int>(xLoc, yLoc), MaizeFieldList);
+						if(MaizeFieldList.size()==0&&agentList.size()==0)
+						{
+							goto skip_l;
+						}
+					}
+				}
+			}
+		}
+		skip_l:
 
 		repast::Point<int> initialLocation(xLoc, yLoc);		//Give agent a location
 		repast::Point<int> initialMaizeLocation(xMLoc, yMLoc);		//Give MaizeField a location
@@ -184,7 +221,7 @@ void AnsaziModel::removeAgent()
 		if ((*it)->checkDeath())
 		{
 			//std::cout<<"The Agent ID is: "<<(*it) -> getId().id()<<std::endl;
-			(*it) -> printAttributes(); 	
+			//(*it) -> printAttributes(); 	
 			//std::cout <<"!Deleted Curent Age as death age met!-----------------------"<<std::endl;
 
 			int maizeLoc[2];
@@ -212,17 +249,25 @@ void AnsaziModel::removeAgent()
 			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
 			(*Mit)->MaizeProduction(x);
 			(*it)->updateMaizeStock((*Mit)->currentYield);
-			std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
-			std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
-			//std::cout<<"Check if enough maize"<<std::endl;
+			//std::cout<<"This is The current MaizeField Yield: "<<(*Mit)->currentYield<<std::endl;
+			//std::cout<<"This is The Expected MaizeField Yield: "<<(*it)->expectedYield<<std::endl;
+			
 			if((*it)->checkMaize() == 1)
 			{
 				//std::cout<<"The Expected MaizeField Yield < 800: "<<(*it)->expectedYield<<std::endl;
-				std::cout<<"Trying to move agent and maize field: "<<(*it) -> getId()<<(*Mit) -> getId()<<std::endl;
-				//std::cout<<"Killing maize: "<<(*Mit) -> getId()<<std::endl;
+				//std::cout<<"Trying to move agent and maize field: "<<(*it) -> getId()<<(*Mit) -> getId()<<std::endl;
+				
 				bool kill = false; 
-				kill = move((*Mit),(*it));
-				if(kill){
+				if(fullCheck == 0)
+				{
+					kill = move((*Mit),(*it));
+				}
+				else 
+					kill=true;
+				//std::cout<<"done"<<std::endl;
+				if(kill)
+				{
+					//std::cout<<"Killing maize: "<<(*Mit) -> getId()<<std::endl;
 					repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
 	    			context.removeAgent((*it) -> getId());
 					Mcontext.removeAgent((*Mit) -> getId());
@@ -234,50 +279,73 @@ void AnsaziModel::removeAgent()
 	}
 }                 						
 
-bool AnsaziModel::move(MaizeField* Mit, Agent* it){
+bool AnsaziModel::move(MaizeField* Mit, Agent* it)
+{
 	std::vector<MaizeField*> MaizeFieldList;
 	std::vector<Agent*> agentList;
 	bool selectionA = false, selectionB = true; //Selection A makes sure there's a clear space and selection B makes sure there's enough maize being produced. 
-
+	//std::cout<<"Moving"<<std::endl;
 	//Initialise random numbers 
-	repast::IntUniformGenerator gen1 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
-	repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
-
 	//Move the miaze field 
+	int run = 0; 
+
 	int xMLoc = -1; int yMLoc = -1;
 	bool end = false; 
-
-	for(int i=0; i<80; i++)
+	
+	for(int i=Mx; i<80; i++)
 	{
 		for(int j = 0; j <120; j++)
 		{
+			//int yieldcurrent = Mit->currentYield;
+			if(run == 0)
+			{
+				if(My<119)
+				{
+					j = My+1;
+				}
+				run = 1;  
+			}
+			//std::cout<<i<<j<<std::endl;
 			agentList.clear();
 			MaizeFieldList.clear();
 			discreteSpace->getObjectsAt(repast::Point<int>(i, j), agentList);
 			MdiscreteSpace->getObjectsAt(repast::Point<int>(i, j), MaizeFieldList);
-			if(agentList.size()==0&&MaizeFieldList.size()==0)
+			
+			if(agentList.size() == 0 && MaizeFieldList.size() == 0)
 			{
-				int xMLoc = i;
-				int yMLoc = j; 
-				end = true; 
-				break;
-			}
+				x = droughtindex(currentYear,std::to_string(i),std::to_string(j));
+				Mit->MaizeProduction(x);
+				int yieldcurrent = Mit->currentYield;
+				if(yieldcurrent > 800)
+				{
+					//std::cout<<" Over 800 found folks"<<endl;
+					xMLoc = i;
+					yMLoc = j; 
+					Mx = i; 
+					My = j; 
+					//std::cout<<"Mx, MY:"<<Mx<<My<<std::endl;					
+					goto skip_loop;
+				}
+			}	
 		}
-		if(end == true)
-			break;
 	}
+	run = 0;
+	skip_loop:
 
 	if(xMLoc == -1)
 	{
+		Mx=0; 
+		My=0;
+		fullCheck = 1; 
+		//std::cout<<"full check"<<std::endl; 
+		//std::cout<<"End of loop reached"<<std::endl;
 		return true; 
 	}
 	else
 	{
 		repast::Point<int> MaizeLocation(xMLoc, yMLoc);
 		MdiscreteSpace->moveTo(Mit -> getId(), MaizeLocation);
-		//std::cout<<"MaizeField moved to location:"<< Mit -> getId() <<MaizeLocation<<endl;
-		//Move the agent  
-		//std::cout<<"Trying Locations:"; 
+
 		std::vector<int> gXloc; 
 		std::vector<int> gYloc; 
 
@@ -315,6 +383,7 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it){
 			return false; 
 		}
 	}
+	//std::cout<<"done"<<std::endl;
 }
 
 void AnsaziModel::fissionProcess()
@@ -334,13 +403,9 @@ void AnsaziModel::fissionProcess()
 		//(*it) -> printAttributes();  
 		if ((*it)->fissionReady())
 		{
-    		//std::cout<<"!Fission occurring Adding an agent!---------------------------"<<std::endl; 
-			//std::vector<Agent*> agentList;
-			
-			//Load random values to initilaise agents
 
-		repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
-		repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
+			repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
+			repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
 			int initialAge= 0;
 			int infertileAge=30;
 			int xLoc = gen4.next(); int yLoc = gen5.next();
@@ -381,11 +446,16 @@ void AnsaziModel::fissionProcess()
 
 void AnsaziModel::printToScreen() 
 {
-	//print board to screen
+//print board to screen
 	std::vector<Agent*> agentList;
 	std::vector<MaizeField*> MaizeFieldList;
-	//std::cout<<"========================== TEST 2 =================================== "<<endl;
-	//std::cout<<"========================== TEST 5 ================================="<<endl;
+	std::stringstream xs,ys;
+	std::string xx,yy; 
+	int pow =50;
+	int mow = 50; 
+	xx = std::to_string(pow);
+	yy = std::to_string(mow);
+
 	for (int i=0; i<=boardSizey+1; i++)
 	{
 		for (int j=0; j<=boardSizex+1; j++) 
@@ -403,34 +473,47 @@ void AnsaziModel::printToScreen()
 				discreteSpace->getObjectsAt(repast::Point<int>(j, i), agentList);
 				MdiscreteSpace->getObjectsAt(repast::Point<int>(j, i), MaizeFieldList);
 				//cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
-				if (agentList.size() > 1) 
+			
+				xx = std::to_string(j);
+				yy = std::to_string(i);
+				if (agentList.size() > 1 || MaizeFieldList.size() >1)
 				{
-					std::cout << agentList.size();
+					if(agentList.size() >1 )
+						std::cout << agentList.size();
+					else
+						std::cout << MaizeFieldList.size();
 				}
-				else if (agentList.size() == 0)
+				
+
+				if (agentList.size() == 0 && MaizeFieldList.size() == 0 && waterlocation(currentYear, xx, yy) == 0)
 				{
-					if(MaizeFieldList.size() == 0)
 						std::cout << " ";
+
 				}
-				else if(agentList.size() != 0)
+				if (MaizeFieldList.size() == 1)
 				{
-					std::cout << "X";
+						std::cout << "0";
+
 				}
-				if (MaizeFieldList.size() > 1) 
+				if (waterlocation(currentYear, xx, yy) == 1)
 				{
-					std::cout << MaizeFieldList.size();
+						std::cout << "W";
+
+				}
+				if (agentList.size() == 1)
+				{
+						std::cout << "X";
+
 				}
 
-				else if(MaizeFieldList.size() != 0) 
-				{
-					std::cout << "O";
-				}
+
+
 			}
 		}
 		std::cout << std::endl;
 	}
 	cout << "Total Amount of Agents at end of year: "<<countOfAgents<<endl;
-	//cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
+	cout << "Total Amount of MaizeFields at end of year: "<<MaizeFieldList.size()<<endl;
 }
 
 //reading from file functions (Niri)===========================================================
@@ -458,20 +541,6 @@ std::vector<std::vector<std::string> > readcsv(std::string filename1)
         array.push_back(v);  // add the 1D array to the 2D array
     }
 
-    // print out what was read in------------------------------------------------
-    /*if(filename1=="src/water.csv")
-	{
-	    //std::cout << "test 2 \n" << endl; 
-	    for (size_t x=0; x<array.size(); ++x)
-	    {
-	        for (size_t y=0; y<array[x].size(); ++y)
-	        {
-	            std::cout << array[x][y] << "|"; // (separate fields by |)
-	        }
-	        std::cout << "\n";
-	    }
-	    cout << array[1][1];
-	}*/
     return array;
 }
 
@@ -485,14 +554,12 @@ void AnsaziModel::outputfile(int value)
 	}
     file.open("household.csv",std::ios::app);
     file << value << std::endl;
-    file.close(); 
-}
+	file.close(); 
+    
+}    
 
-bool waterlocation(int year1, std::string xaxis1, std::string yaxis1)
+bool AnsaziModel::waterlocation(int year1, std::string xaxis1, std::string yaxis1)
 {
-    std::vector< std::vector<std::string> > water, maps;
-    water = readcsv("src/water.csv");    
-    maps = readcsv("src/map.csv");
     year1 =year1;
     std::string xax,yax, zone;
     int startdateint, enddateint,typeint,existStreams=0, existAlluvium=0;
@@ -511,26 +578,17 @@ bool waterlocation(int year1, std::string xaxis1, std::string yaxis1)
         }
     }
 
-    while(maps[y1][1] != yax )
+    while(maps.size()-1 != y1 )
     {
         y1++;
         if(maps[y1][1] == yax && maps[y1][0] == xax)
         {
-        break;
-        }
-        else if(maps[y1][1] == yax && maps[y1][0] != xax)
-        {
-            y1++;          
+        	break;
         }
     }
 
-    if(y==105)
-    {
-        if(water[y][7] != yax && water[y][6] != xax)
-        {
-        	return false;
-        }
-    }
+
+
     typeint = atoi(water[y][3].c_str());
     startdateint = atoi(water[y][4].c_str());
     enddateint = atoi(water[y][5].c_str());
@@ -590,10 +648,9 @@ bool waterlocation(int year1, std::string xaxis1, std::string yaxis1)
 }
 
 
-int droughtindex(int year, std::string xaxis, std::string yaxis)
+int AnsaziModel::droughtindex(int year, std::string xaxis, std::string yaxis)
 {
-    std::vector< std::vector<std::string> > pdsi, maps;
-    pdsi = readcsv("src/pdsi.csv");    year =year - 799;
+    year =year - 799;
     std::string content;
     std::string general;
     std::string north;
@@ -729,7 +786,7 @@ int droughtindex(int year, std::string xaxis, std::string yaxis)
          droughtindexkin=1153;
     }
     int x=0,y=0;
-    maps = readcsv("src/map.csv");
+    
         while(maps[y][1] != yax )
         {
             y++;
