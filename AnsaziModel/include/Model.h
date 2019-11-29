@@ -23,12 +23,9 @@ private:
 	int x;
 	int deathAge; 
 	bool watertest;
+	//int Mx;
+	//int My; 
 	
-	std::vector<std::vector<std::string> > maps;
-	std::vector<std::vector<std::string> > water;
-	std::vector<std::vector<std::string> > hydro;
-	std::vector<std::vector<std::string> > pdsi;
-
 	//Repast libraries ===========================================================
 	repast::Properties* props;
 	repast::SharedContext<Agent> context;
@@ -52,6 +49,12 @@ public:
 	void fissionProcess(); 
 	void outputfile(int value); 
 	bool move(MaizeField* Mit, Agent* it); 
+	bool waterlocation(int year1, std::string xaxis1, std::string yaxis1);
+	int droughtindex(int year, std::string xaxis, std::string yaxis);
+	std::vector<std::vector<std::string> > maps;
+	std::vector<std::vector<std::string> > water;
+	std::vector<std::vector<std::string> > hydro;
+	std::vector<std::vector<std::string> > pdsi;
 
 };
 
