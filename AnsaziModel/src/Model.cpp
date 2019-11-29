@@ -94,8 +94,8 @@ void AnsaziModel::doPerTick()
 	Mx = 0; 
 	My= 0; 
 	std::cout<< currentYear << "	:current year \n";
-	if(currentYear == 800 || currentYear ==(800+stopAt-1))
-		printToScreen();
+	/*if(currentYear == 800 || currentYear ==(800+stopAt-1))
+		printToScreen();*/
 	outputfile(countOfAgents);
 	currentYear++;
 }
@@ -140,22 +140,21 @@ void AnsaziModel::initAgents()
 			xLoc = gen4.next(); yLoc = gen5.next();
 			MdiscreteSpace->getObjectsAt(repast::Point<int>(xLoc, yLoc), MaizeFieldList);
 		}while (MaizeFieldList.size()!=0);	
-	
 		
-		for(int i = -10; i<=10; i++)
+		for(int x = -10; x<=10; x++)
 		{
-			int xMLoc = xLoc+i;
+			int xMLoc = xLoc+x;
 			if(xLoc>=0&&xLoc<80)
 			{
-				for(int j = -10; j<=10 ; j++)
+				for(int y = -10; y<=10 ; x++)
 				{	
-					int yMLoc = yLoc+j; 
+					int yMLoc = yLoc+y; 
 					if(yLoc>=0&&yLoc<120)
 					{	
 						MaizeFieldList.clear();
 						agentList.clear();
 						discreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), agentList);
-						MdiscreteSpace->getObjectsAt(repast::Point<int>(xLoc, yLoc), MaizeFieldList);
+						MdiscreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), MaizeFieldList);
 						if(MaizeFieldList.size()==0&&agentList.size()==0)
 						{
 							goto skip_l;
@@ -164,8 +163,8 @@ void AnsaziModel::initAgents()
 				}
 			}
 		}
-		skip_l:
 
+		skip_l:
 		repast::Point<int> initialLocation(xLoc, yLoc);		//Give agent a location
 		repast::Point<int> initialMaizeLocation(xMLoc, yMLoc);		//Give MaizeField a location
 
@@ -389,7 +388,10 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 void AnsaziModel::fissionProcess()
 {
 	std::vector<Agent*> agents;
+	std::vector<Agent*> agentList;	
 	std::vector<MaizeField*> MaizeFieldList;
+	std::vector<MaizeField*> MaizeList;
+
 	//std::cout<<"Cant create agent"<<std::endl; 
 	int i=0; 
 	context.selectAgents(repast::SharedContext<Agent>::LOCAL, countOfAgents, agents);
@@ -412,7 +414,47 @@ void AnsaziModel::fissionProcess()
 			int xMLoc = gen4.next(); int yMLoc = gen5.next();
 			int fertileAge = 16;
 			int rank = repast::RepastProcess::instance()->rank();
-			
+				
+			for(int i=79; i>-1; i--)
+			{
+				for(int j = 119; j >-1; j--)
+				{
+					//std::cout<<i<<j<<std::endl;
+					MaizeList.clear();
+					MdiscreteSpace->getObjectsAt(repast::Point<int>(i, j), MaizeList);
+					if(MaizeFieldList.size() == 0)
+					{
+						xLoc = i;
+						yLoc = j; 
+						goto skip_loop;
+	
+					}	
+				}
+			}
+			skip_loop: 
+			for(int i = -10; i<=10; i++)
+			{
+				int xMLoc = xLoc+i;
+				if(xLoc>=0&&xLoc<80)
+				{
+					for(int j = -10; j<=10 ; j++)
+					{	
+						int yMLoc = yLoc+j; 
+						if(yLoc>=0&&yLoc<120)
+						{	
+							MaizeList.clear();
+							agentList.clear();
+							discreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), agentList);
+							MdiscreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), MaizeList);
+							if(MaizeList.size()==0&&agentList.size()==0)
+							{
+								goto skip_l;
+							}
+						}
+					}
+				}
+			}
+			skip_l:
 			//Add info to simulation
 			repast::Point<int> initialLocation(xLoc, yLoc);		//Give agent a location
 			repast::Point<int> initialMaizeLocation(xMLoc, yMLoc);		//Give MaizeField a location
