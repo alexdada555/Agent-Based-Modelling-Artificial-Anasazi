@@ -47,7 +47,7 @@ public:
 	void removeAgent();
 	void updateDeath();
 	void fissionProcess(); 
-	void outputfile(int value); 
+	void outputfile(std::vector<int> value);
 	bool move(MaizeField* Mit, Agent* it); 
 	bool waterlocation(int year1, std::string xaxis1, std::string yaxis1);
 	int droughtindex(int year, std::string xaxis, std::string yaxis);
