@@ -68,9 +68,11 @@ bool Agent::fissionReady()
 		}
 	}
 	else 
+	{
 		updateAge();
 		return false; 
-};
+	}
+}
 
 void Agent::printAttributes()
 {
@@ -103,27 +105,31 @@ void Agent::updateMaizeStock(int Yield)
 	{
 		tick = 0; 
 	}
+	//else
+	//{
+	maizeStock=Yield;
+	if(Yield > 800)
+	{
+		previousYield[tick] += Yield-800;
+		if (previousYield[tick] < 0)
+		{
+			previousYield[tick-1] += previousYield[tick];
+		}
+	}
 	else
 	{
-		maizeStock=Yield;
-		if(Yield > 800)
+		previousYield[tick] -= 800;
+		if (previousYield[tick] < 0)
 		{
-			previousYield[tick] += Yield-800;
-			if (previousYield[tick] < 0)
-			{
-				previousYield[tick] = 0;
-			}
+			previousYield[tick] = 0;
 		}
-		else
-		{
-			previousYield[tick] -= 800;
-			if (previousYield[tick] < 0)
-			{
-				previousYield[tick] = 0;
-			}
-		}
-		tick=tick+1; 
 	}
+	if((previousYield[0] + previousYield[1])>1600)
+	{
+		previousYield[tick] = 1600-previousYield[tick-1];
+
+	}
+	tick=tick+1; 
 }
 
 void Agent::Maizeloc2str()
@@ -133,6 +139,11 @@ void Agent::Maizeloc2str()
 	Xval = std::to_string(xval);
 	Yval = std::to_string(yval);
 }
+
+
+//void Agent::storedYield 
+
+
 
 /*
 void Agent::relocateField()

@@ -93,8 +93,8 @@ void AnsaziModel::doPerTick()
 		//std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
 	Mx = 0; 
 	My= 0; 
-	Fx = 79; 
-	Fy = 119; 
+	//Fx = 79; 
+	//Fy = 119; 
 	std::cout<< currentYear << "	:current year \n";
 	if(currentYear == 800 || currentYear ==(800+stopAt-1))
 		printToScreen();
@@ -323,9 +323,15 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 			if(agentList.size() == 0 && MaizeFieldList.size() == 0 && waterlocation(currentYear,xx, yy) == 0) //done need to move to closest agent 
 			{
 				x = droughtindex(currentYear,std::to_string(i),std::to_string(j));
+				//This isn't write!!!!!!!============================================================================================
 				Mit->MaizeProduction(x);
-				int yieldcurrent = Mit->currentYield;
-				if(yieldcurrent > 800 )
+				int yieldcurrent = Mit->currentYield; //This gets the current yield stored for that year
+				//int storedYield = it->storedYield();
+				/*
+				int BY = x*MaizeFieldData1*MaizeFieldData1
+				int yieldcurrent;
+				yieldcurrent = BY * (1 + MaizeFieldData2);*/ 
+				if(yieldcurrent > 800)
 				{
 					
 					xMLoc = i;
@@ -379,9 +385,6 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 							MaizeFieldList.clear();
 							discreteSpace->getObjectsAt(repast::Point<int>(xLoc, yLoc), agentList); 
 							MdiscreteSpace->getObjectsAt(repast::Point<int>(xLoc, yLoc), MaizeFieldList);
-							//std::cout<<"Xloc:"<<xLoc<<" Yloc:"<<yLoc<<std::endl; 
-							//Convert i and j
-
 							if(MaizeFieldList.size()==0 && waterlocation(currentYear, xx,yy) ==0 && agentList.size() ==0)
 							{
 								gXloc.push_back(xLoc);
@@ -427,14 +430,15 @@ void AnsaziModel::fissionProcess()
 	//std::cout<<"Fission starting"<<std::endl; 
 	for(int i=Fx; i>-1; i--)
 	{
-		for(int j = 0; j >-1; j--)
+		for(int j = 119; j >-1; j--)
 		{
-			if(run ==0)
+			if(run == 0)
 			{
 				run = 1; 
 				j = Fy; 
 			}
 			//std::cout<<i<<j<<std::endl;
+			//std::cout<<"J"<<j<<std::endl; 
 			xx = std::to_string(i);
 			yy = std::to_string(j);
 			MaizeList.clear();
@@ -462,7 +466,7 @@ void AnsaziModel::fissionProcess()
 								agentList.clear();
 								discreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), agentList);
 								MdiscreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), MaizeList);
-								if(MaizeList.size()==0&&agentList.size()==0 && waterlocation(currentYear,xx,yy)==0)
+								if(MaizeList.size()==0 && agentList.size()==0 && waterlocation(currentYear,xx,yy)==0)
 								{
 									//std::cout<<"Maize Location found: "<<xMLoc<<yMLoc<<std::endl; 
 									Fx = i; 
@@ -478,6 +482,11 @@ void AnsaziModel::fissionProcess()
 		}
 	}			
 	skip_l:
+	if(Fx<=0)
+	{
+		Fx = 79; 
+		Fy = 119;
+	}
 	if(found)
 	{
 		//Add info to simulation
@@ -504,6 +513,7 @@ void AnsaziModel::fissionProcess()
 		MdiscreteSpace->moveTo(Maizeid, initialMaizeLocation);
 		countOfAgents ++; 
 		currentId ++;
+		//std::cout<<"Fission occuring at:"<<initialLocation<<initialMaizeLocation<<std::endl;
 	}	
 	//std::cout<<"Location not found"<<std::endl;
 };
