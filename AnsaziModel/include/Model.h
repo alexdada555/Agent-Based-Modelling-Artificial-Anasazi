@@ -23,8 +23,6 @@ private:
 	int x;
 	int deathAge; 
 	bool watertest;
-	int maxFertilityAge;
-	int minFertilityAge; 
 	//int Mx;
 	//int My; 
 	
@@ -48,7 +46,7 @@ public:
 	void doPerTick();
 	void removeAgent();
 	void updateDeath();
-	void fissionProcess(int x, int y); 
+	void fissionProcess(); 
 	void outputfile(std::vector<int> value);
 	bool move(MaizeField* Mit, Agent* it); 
 	bool waterlocation(int year1, std::string xaxis1, std::string yaxis1);
