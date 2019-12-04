@@ -46,11 +46,11 @@ AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mp
 	deathAge = repast::strToInt(props->getProperty("deathAge"));								//Get the death age 
 	MaizeFieldData1 = repast::strToInt(props->getProperty("harvest.adjustment.level"));
 	MaizeFieldData2 = repast::strToInt(props->getProperty("sigmaahv"));
-	maxFertilityAge = repast::strToInt(props->getProperty("maxFertilityAge"));
-	minFertilityAge = repast::strToInt(props->getProperty("minFertilityAge"));
+
 
     //watertest= waterlocation(1000,"44","96");
     //cout << "water is : " <<  watertest << "\n" ;
+
 	currentId = countOfAgents; 
 
 	initializeRandom(*props, comm);																	
@@ -87,16 +87,15 @@ void AnsaziModel::doPerTick()
 	if(countOfAgents!= 0) 
 	{
 		removeAgent();
-		//fissionProcess();
 	}
 	//else 
 		//std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
-	//Mx = 0; 
-	//My= 0; 
+	Mx = 0; 
+	My= 0; 
 	//Fx = 79; 
 	//Fy = 119; 
 	std::cout<< currentYear << "	:current year \n";
-	if(/*currentYear == 800 || */currentYear ==(800+stopAt-1))
+	if(currentYear == 800 || currentYear == 900 ||currentYear == 1000||currentYear == 1100||currentYear == 1200||currentYear ==(800+stopAt-1))
 		printToScreen();
 	countagent.push_back(countOfAgents);
 	//if(currentYear ==(800+stopAt-1))
@@ -116,12 +115,12 @@ void AnsaziModel::initAgents()
 
 	int currentmin=0;                                                                                                                          															
 	int currentmax=30;
-	//int fertilemin=16;
-	//int fertilemax=30;
+	int fertilemin=16;
+	int fertilemax=30;
 	
 
 	repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(currentmin, currentmax);
-	//repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(fertilemin, fertilemax);
+	repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(fertilemin, fertilemax);
 	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
 	repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
 	//std::cout<<"=====================================Test 1 ====================="<<std::endl;
@@ -138,14 +137,13 @@ void AnsaziModel::initAgents()
 		int fertileAge = 16;
 		int xLoc = gen4.next(); int yLoc = gen5.next();
 		int xMLoc = gen4.next(); int yMLoc = gen5.next();
-		std::string xx,yy; 
+		
 		do{
 			MaizeFieldList.clear(); 
 			xLoc = gen4.next(); yLoc = gen5.next();
 			MdiscreteSpace->getObjectsAt(repast::Point<int>(xLoc, yLoc), MaizeFieldList);
-			xx = std::to_string(xLoc);
-			yy = std::to_string(yLoc);
-		}while (MaizeFieldList.size()!=0&&waterlocation(currentYear, xx,yy)==1); 
+		}while (MaizeFieldList.size()!=0);	
+	
 		
 		for(int i = -10; i<=10; i++)
 		{
@@ -161,9 +159,7 @@ void AnsaziModel::initAgents()
 						agentList.clear();
 						discreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), agentList);
 						MdiscreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), MaizeFieldList);
-						xx = std::to_string(xMLoc);
-						yy = std::to_string(yMLoc);
-						if(MaizeFieldList.size()==0&&agentList.size()==0&&waterlocation(currentYear, xx,yy)==0)
+						if(MaizeFieldList.size()==0&&agentList.size()==0)
 						{
 							goto skip_l;
 						}
@@ -183,7 +179,7 @@ void AnsaziModel::initAgents()
 		id.currentRank(rank);
 		Maizeid.currentRank(rank);
 
-		Agent* agent = new Agent(id, initialAge, minFertilityAge, deathAge, maxFertilityAge,xMLoc,yMLoc); //Create new agent with defined values
+		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge,xMLoc,yMLoc); //Create new agent with defined values
 		MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);    //MaizeFieldData
 		//std::cout<<"Agent ID: "<<id<<std::endl;
 		//std::cout<<"MaizeID ID: "<<maizeField<<std::endl;
@@ -218,7 +214,6 @@ void AnsaziModel::removeAgent()
 		Mcontext.selectAgents(repast::SharedContext<MaizeField>::LOCAL, countOfAgents, maizeFields);
 		std::vector<MaizeField*>::iterator Mit = maizeFields.begin();
 		Mit = maizeFields.begin();
-		//std::cout<<"Checking death "<<std::endl;
 		while((*Mit) -> getId()!= (*it) -> getId()){
 			Mit++;
 			//std::cout<<"Agent ID at run: "<<(*it) -> getId()<<std::endl;
@@ -248,13 +243,10 @@ void AnsaziModel::removeAgent()
 			Mcontext.removeAgent((*Mit) -> getId());
 			//std::cout<<"Agent Deleted---"<<std::endl; 
     		countOfAgents --;
-	    	//std::cout<<"death stopped"<<std::endl;
-
     	}
 		else
 		{
 			//std::cout<<"Changing maizefield attributes"<<std::endl; 
-	    	//std::cout<<"death stopped"<<std::endl;
 			(*Mit)->getAttributes(MaizeFieldData1, MaizeFieldData2);
 			(*it)->Maizeloc2str();
 			x = droughtindex(currentYear,(*it)->Xval,(*it)->Yval);
@@ -286,11 +278,7 @@ void AnsaziModel::removeAgent()
 	    		}
 			}
 			if((*it)->fissionReady()&&fullCheck==0){
-				//std::cout<<"agent fisiion occuring"<<std::endl;
-				std::vector<int> otherLoc;
-        		discreteSpace->getLocation((*it)->getId(), otherLoc);
-        		//std::cout<<"Agent Location"<<otherLoc[0]<<otherLoc[1]<<std::endl;
-				fissionProcess(otherLoc[0],otherLoc[1]);
+				fissionProcess(); 
 			}
 		}
 		it++;
@@ -299,7 +287,6 @@ void AnsaziModel::removeAgent()
 
 bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 {
-	//std::cout<<"Move starting"<<std::endl; 
 	std::vector<MaizeField*> MaizeFieldList;
 	std::string xx,yy; 
 	std::vector<Agent*> agentList;
@@ -308,6 +295,7 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 	//Initialise random numbers 
 	//Move the miaze field 
 	int run = 0; 
+
 	int xMLoc = -1; int yMLoc = -1;
 	bool end = false; 
 	
@@ -365,8 +353,6 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 		fullCheck = 1; 
 		//std::cout<<"full check"<<std::endl; 
 		//std::cout<<"End of loop reached"<<std::endl;
-		//std::cout<<"Move stop"<<std::endl; 
-
 		return true; 
 	}
 	else
@@ -411,26 +397,20 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 
 		if (gXloc.size() ==0)
 		{
-				//std::cout<<"Move stop"<<std::endl; 
-
 			return true; 
 		}
 		else
 		{ 
 			repast::Point<int> agentLocation(gXloc[1], gYloc[1]);
 			discreteSpace->moveTo(it -> getId(), agentLocation);
-				//std::cout<<"Move stop"<<std::endl; 
-
 			return false; 
 		}
 	}
 	//std::cout<<"done"<<std::endl;
-
 }
 
-void AnsaziModel::fissionProcess(int x, int y)
+void AnsaziModel::fissionProcess()
 {
-	std::cout<<"fission starting"<<std::endl;
 	//Initialise vectors 
 	//std::vector<Agent*> agents;
 	std::vector<Agent*> agentList;	
@@ -439,56 +419,14 @@ void AnsaziModel::fissionProcess(int x, int y)
 	std::string xx,yy;																//Make "it" the statrting element
 
 	int initialAge= 0;
-	//int infertileAge=30;
-	//int xLoc = -1; int yLoc = -1;
+	int infertileAge=30;
+	int xLoc = -1; int yLoc = -1;
 	int xMLoc = -1; int yMLoc = -1;
 	int found = false;
-	//int fertileAge = 16;
+	int fertileAge = 16;
 	int run = 0; 
 	int rank = repast::RepastProcess::instance()->rank();
-
-	//std::cout<<"Agent location found:"<<i<<j<<std::endl; 
-	//std::cout<<"Location: "<<x<<y<<std::endl;
-	//std::cout<<"x: "<<x<<std::endl;
-	//std::cout<<"y: "<<y<<std::endl;  
-	int yLoc = y;
-	int xLoc = x;
-	//std::cout<<"xLoc: "<<xLoc<<std::endl;
-	//std::cout<<"yLoc: "<<yLoc<<std::endl;  
-	float circle; 
-	/*
-	for(int im = -20; im<20; im++)
-	{
-		xMLoc = xLoc + im;
-		//std::cout<<"XM: "<<xMLoc; 
-		if(xMLoc>=0&&xMLoc<120)
-		{
-			for(int jm = -20; jm<20; jm++)
-			{	
-				yMLoc = yLoc+jm; 
-				if(yMLoc>=0&&yMLoc<120)
-				{	
-					//std::cout<<" yM: "<<xMLoc<<std::endl; 
-					circle = sqrt(im^2 + jm^2); 
-					if(circle<20)
-					{
-						xx = std::to_string(xMLoc);
-						yy = std::to_string(yMLoc);
-						MaizeList.clear();
-						agentList.clear();
-						discreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), agentList);
-						MdiscreteSpace->getObjectsAt(repast::Point<int>(xMLoc, yMLoc), MaizeList);
-						if(MaizeList.size()==0 && agentList.size()==0 && waterlocation(currentYear,xx,yy)==0)
-						{
-							//std::cout<<"Maize Location found: "<<xMLoc<<yMLoc<<std::endl; 
-							found = true; 
-							goto skip_l;
-						}
-					}
-				}
-			}
-		}
-	}*/
+	//std::cout<<"Fission starting"<<std::endl; 
 	for(int i=Fx; i>-1; i--)
 	{
 		for(int j = 119; j >-1; j--)
@@ -548,7 +486,6 @@ void AnsaziModel::fissionProcess(int x, int y)
 		Fx = 79; 
 		Fy = 119;
 	}
-
 	if(found)
 	{
 		//Add info to simulation
@@ -565,7 +502,7 @@ void AnsaziModel::fissionProcess(int x, int y)
 		maizeLoc[0] = 0;
 		maizeLoc[1] = 0;
 
-		Agent* agent = new Agent(id, initialAge, minFertilityAge, deathAge, maxFertilityAge, maizeLoc[0], maizeLoc[1]); //Create new agent with defined values
+		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge, maizeLoc[0], maizeLoc[1]); //Create new agent with defined values
 		MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);  
 
 		Mcontext.addAgent(maizeField);
@@ -575,13 +512,10 @@ void AnsaziModel::fissionProcess(int x, int y)
 		MdiscreteSpace->moveTo(Maizeid, initialMaizeLocation);
 		countOfAgents ++; 
 		currentId ++;
-		//std::cout<<"Agent fissioned"<<std::endl;
 		//std::cout<<"Fission occuring at:"<<initialLocation<<initialMaizeLocation<<std::endl;
 	}	
 	//std::cout<<"Location not found"<<std::endl;
-	std::cout<<"Move stop"<<std::endl; 
-
-}
+};
 
 void AnsaziModel::printToScreen() 
 {
@@ -590,8 +524,6 @@ void AnsaziModel::printToScreen()
 	std::vector<MaizeField*> MaizeFieldList;
 	std::stringstream xs,ys;
 	std::string xx,yy; 
- 
-
 
 	for (int i=0; i<=boardSizey+1; i++)
 	{
