@@ -46,11 +46,11 @@ AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mp
 	deathAge = repast::strToInt(props->getProperty("deathAge"));								//Get the death age 
 	MaizeFieldData1 = repast::strToInt(props->getProperty("harvest.adjustment.level"));
 	MaizeFieldData2 = repast::strToInt(props->getProperty("sigmaahv"));
-	
+	maxFertilityAge = repast::strToInt(props->getProperty("maxFertilityAge"));
+	minFertilityAge = repast::strToInt(props->getProperty("minFertilityAge"));
 
     //watertest= waterlocation(1000,"44","96");
     //cout << "water is : " <<  watertest << "\n" ;
-
 	currentId = countOfAgents; 
 
 	initializeRandom(*props, comm);																	
@@ -116,12 +116,12 @@ void AnsaziModel::initAgents()
 
 	int currentmin=0;                                                                                                                          															
 	int currentmax=30;
-	int fertilemin=16;
-	int fertilemax=30;
+	//int fertilemin=16;
+	//int fertilemax=30;
 	
 
 	repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(currentmin, currentmax);
-	repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(fertilemin, fertilemax);
+	//repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(fertilemin, fertilemax);
 	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
 	repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
 	//std::cout<<"=====================================Test 1 ====================="<<std::endl;
@@ -183,7 +183,7 @@ void AnsaziModel::initAgents()
 		id.currentRank(rank);
 		Maizeid.currentRank(rank);
 
-		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge,xMLoc,yMLoc); //Create new agent with defined values
+		Agent* agent = new Agent(id, initialAge, minFertilityAge, deathAge, maxFertilityAge,xMLoc,yMLoc); //Create new agent with defined values
 		MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);    //MaizeFieldData
 		//std::cout<<"Agent ID: "<<id<<std::endl;
 		//std::cout<<"MaizeID ID: "<<maizeField<<std::endl;
@@ -439,11 +439,11 @@ void AnsaziModel::fissionProcess(int x, int y)
 	std::string xx,yy;																//Make "it" the statrting element
 
 	int initialAge= 0;
-	int infertileAge=30;
+	//int infertileAge=30;
 	//int xLoc = -1; int yLoc = -1;
 	int xMLoc = -1; int yMLoc = -1;
 	int found = false;
-	int fertileAge = 16;
+	//int fertileAge = 16;
 	int run = 0; 
 	int rank = repast::RepastProcess::instance()->rank();
 
@@ -565,7 +565,7 @@ void AnsaziModel::fissionProcess(int x, int y)
 		maizeLoc[0] = 0;
 		maizeLoc[1] = 0;
 
-		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge, maizeLoc[0], maizeLoc[1]); //Create new agent with defined values
+		Agent* agent = new Agent(id, initialAge, minFertilityAge, deathAge, maxFertilityAge, maizeLoc[0], maizeLoc[1]); //Create new agent with defined values
 		MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);  
 
 		Mcontext.addAgent(maizeField);
