@@ -21,7 +21,10 @@ private:
 	int currentYear;
 	int currentId;
 	int x;
-	int deathAge; 
+	int mindeathAge; 
+	int maxdeathAge; 
+	int minFertileAge; 
+	int maxFertileAge; 
 	bool watertest;
 	//int Mx;
 	//int My; 
@@ -55,6 +58,10 @@ public:
 	std::vector<std::vector<std::string> > water;
 	std::vector<std::vector<std::string> > hydro;
 	std::vector<std::vector<std::string> > pdsi;
+	std::vector<std::vector<int> > waterint;
+	std::vector<std::vector<int> > hydroint;
+	std::vector<std::vector<int> > pdsiint;
+
 
 };
 
