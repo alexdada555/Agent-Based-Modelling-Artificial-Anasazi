@@ -63,7 +63,7 @@ AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mp
 	MaizeFieldData2 = repast::strToDouble(props->getProperty("sigmaahv"));
 	minFertileAge = repast::strToInt(props->getProperty("minFertileAge"));				
 	maxFertileAge = repast::strToInt(props->getProperty("maxFertileAge"));
-
+	fissionProb = repast::strToDouble(props->getProperty("fissionProb"));
 
     //watertest= waterlocation(1000,"44","96");
     //cout << "water is : " <<  watertest << "\n" ;
@@ -294,7 +294,7 @@ void AnsaziModel::removeAgent()
 	    			countOfAgents --;
 	    		}
 			}
-			if((*it)->fissionReady()&&fullCheck==0){
+			if((*it)->fissionReady(fissionProb)&&fullCheck==0){
 				fissionProcess(); 
 			}
 		}
