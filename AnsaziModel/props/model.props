@@ -8,5 +8,6 @@ mindeathAge = 28
 maxdeathAge = 30
 minFertileAge = 16
 maxFertileAge = 30
+fissionProb = 0.125
 harvest.adjustment.level = 1
 sigmaahv = 0.1
