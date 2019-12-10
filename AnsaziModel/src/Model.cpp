@@ -64,6 +64,7 @@ AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mp
 	minFertileAge = repast::strToInt(props->getProperty("minFertileAge"));				
 	maxFertileAge = repast::strToInt(props->getProperty("maxFertileAge"));
 	fissionProb = repast::strToDouble(props->getProperty("fissionProb"));
+	//std::cout<<"Fission prob: "<<fissionProb<<std::endl;
 
     //watertest= waterlocation(1000,"44","96");
     //cout << "water is : " <<  watertest << "\n" ;

@@ -48,13 +48,17 @@ bool Agent::checkMaize()
 	return(checkMove);
 }
 
-bool Agent::fissionReady(int fissionProb)
+bool Agent::fissionReady(float fissionProb)
 {
 	//std::cout<<"Current Age: "<<currentAge<<std::endl;
-	if(currentAge>=fertileAge)
+	if(currentAge>=16&&currentAge<infertileAge)
 	{
-		repast::IntUniformGenerator gen = repast::Random::instance()->createUniIntGenerator(0, 10*(1-fissionProb));
+		//std::cout<<"Fission "<<fissionProb<<std::endl; 
+		repast::IntUniformGenerator gen = repast::Random::instance()->createUniIntGenerator(1, (1/fissionProb));
+
 		int fChance = gen.next();
+		//std::cout<<"Fission chance: "<<fChance<<std::endl; 
+
 		//std::cout<<"Random Fertile Chance(0->8): "<<fChance<<std::endl;
 		if(fChance == 8)
 		{
