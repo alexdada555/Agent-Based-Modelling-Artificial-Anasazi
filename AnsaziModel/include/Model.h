@@ -53,15 +53,15 @@ public:
 	void fissionProcess(); 
 	void outputfile(std::vector<int> value);
 	bool move(MaizeField* Mit, Agent* it); 
-	bool waterlocation(int year1, std::string xaxis1, std::string yaxis1);
-	int droughtindex(int year, std::string xaxis, std::string yaxis);
+	bool waterlocation(int year1, int xaxis1, int yaxis1);
+	int droughtindex(int year, int xaxis, int yaxis);
 	std::vector<std::vector<std::string> > maps;
 	std::vector<std::vector<std::string> > water;
 	std::vector<std::vector<std::string> > hydro;
 	std::vector<std::vector<std::string> > pdsi;
-	std::vector<std::vector<int> > waterint;
-	std::vector<std::vector<int> > hydroint;
-	std::vector<std::vector<int> > pdsiint;
+	std::vector<std::vector<double> > waterint;
+	std::vector<std::vector<double> > hydroint;
+	std::vector<std::vector<double> > pdsiint;
 
 
 };
