@@ -61,7 +61,7 @@ public:
 	//Program functions
 	bool checkDeath();
     bool checkMaize();
-    bool fissionReady(); 
+    bool fissionReady(int fissionProb); 
 
 	bool checkMove;
     int currentAge;

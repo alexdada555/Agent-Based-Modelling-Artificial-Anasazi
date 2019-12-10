@@ -25,6 +25,7 @@ private:
 	int maxdeathAge; 
 	int minFertileAge; 
 	int maxFertileAge; 
+	int fissionProb; 
 	bool watertest;
 	//int Mx;
 	//int My; 
