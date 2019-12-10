@@ -20,6 +20,8 @@
 
 #include "Model.h"
 std::vector<std::vector<std::string> > readcsv(std::string);
+std::vector<std::vector<int> > conversion(std::vector<std::vector<std::string> >);
+
 
 int Mx; 
 int My; 
@@ -36,6 +38,18 @@ AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mp
 	water = readcsv("src/water.csv");
 	pdsi = readcsv("src/pdsi.csv");
 
+	hydroint = conversion(hydro);
+	waterint = conversion(water);
+	pdsiint = conversion(pdsi);
+	for (size_t i=0; i<hydroint.size(); ++i)
+    {
+        for (size_t j=0; j<hydroint[i].size(); ++j)
+        {
+            cout << hydroint[i][j] << "|"; // (separate fields by |)
+        }
+        cout << "\n";
+    }
+
 	props = new repast::Properties(propsFile, argc, argv, comm);								//Initialise Repast property files 
 
 	stopAt = repast::strToInt(props->getProperty("stop.at"));									//Fetch the stop at value from model.props file
@@ -43,9 +57,12 @@ AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mp
 	boardSizex = repast::strToInt(props->getProperty("board.sizex"));								//Fetch the board size property from model.props 
 	boardSizey = repast::strToInt(props->getProperty("board.sizey"));								//Fetch the board size property from model.props 
 	currentYear = repast::strToInt(props->getProperty("startYear"));							//Set the start year for the simulation
-	deathAge = repast::strToInt(props->getProperty("deathAge"));								//Get the death age 
+	mindeathAge = repast::strToInt(props->getProperty("mindeathAge"));								//Get the death age 
+	maxdeathAge = repast::strToInt(props->getProperty("maxdeathAge"));								//Get the death age 
 	MaizeFieldData1 = repast::strToInt(props->getProperty("harvest.adjustment.level"));
-	MaizeFieldData2 = repast::strToInt(props->getProperty("sigmaahv"));
+	MaizeFieldData2 = repast::strToDouble(props->getProperty("sigmaahv"));
+	minFertileAge = repast::strToInt(props->getProperty("minFertileAge"));				
+	maxFertileAge = repast::strToInt(props->getProperty("maxFertileAge"));
 
 
     //watertest= waterlocation(1000,"44","96");
@@ -113,16 +130,13 @@ void AnsaziModel::initAgents()
 {
 	int rank = repast::RepastProcess::instance()->rank();
 
-	int currentmin=0;                                                                                                                          															
-	int currentmax=30;
-	int fertilemin=16;
-	int fertilemax=30;
-	
 
-	repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(currentmin, currentmax);
-	repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(fertilemin, fertilemax);
+	int fertileAge = 16;
+	repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(mindeathAge, maxdeathAge);
+	repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(minFertileAge, maxFertileAge);
 	repast::IntUniformGenerator gen4 = repast::Random::instance()->createUniIntGenerator(0, boardSizex-1);
 	repast::IntUniformGenerator gen5 = repast::Random::instance()->createUniIntGenerator(0, boardSizey-1);
+
 	//std::cout<<"=====================================Test 1 ====================="<<std::endl;
 	//std::cout<<"----------------------------------Initialisng Agents-------------"<<std::endl;
 
@@ -132,9 +146,8 @@ void AnsaziModel::initAgents()
 		std::vector<Agent*> agentList;
 		std::vector<MaizeField*> MaizeFieldList;
 		//Load random values to initilaise agents
-		int initialAge=gen2.next();
-		int infertileAge=30;
-		int fertileAge = 16;
+		//int initialAge=gen2.next();
+
 		int xLoc = gen4.next(); int yLoc = gen5.next();
 		int xMLoc = gen4.next(); int yMLoc = gen5.next();
 		
@@ -179,6 +192,10 @@ void AnsaziModel::initAgents()
 		id.currentRank(rank);
 		Maizeid.currentRank(rank);
 
+		int deathAge = gen2.next();
+		repast::IntUniformGenerator gen1 = repast::Random::instance()->createUniIntGenerator(0, deathAge);
+		int initialAge = gen1.next(); 
+		int infertileAge = gen3.next();
 		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge,xMLoc,yMLoc); //Create new agent with defined values
 		MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);    //MaizeFieldData
 		//std::cout<<"Agent ID: "<<id<<std::endl;
@@ -417,9 +434,12 @@ void AnsaziModel::fissionProcess()
 	//std::vector<MaizeField*> MaizeFieldList;
 	std::vector<MaizeField*> MaizeList;
 	std::string xx,yy;																//Make "it" the statrting element
+	repast::IntUniformGenerator gen2 = repast::Random::instance()->createUniIntGenerator(mindeathAge, maxdeathAge);
+	repast::IntUniformGenerator gen3 = repast::Random::instance()->createUniIntGenerator(minFertileAge, maxFertileAge);
+	
 
 	int initialAge= 0;
-	int infertileAge=30;
+	//int infertileAge=30;
 	int xLoc = -1; int yLoc = -1;
 	int xMLoc = -1; int yMLoc = -1;
 	int found = false;
@@ -502,8 +522,11 @@ void AnsaziModel::fissionProcess()
 		maizeLoc[0] = 0;
 		maizeLoc[1] = 0;
 
+		int deathAge = gen2.next();
+		int infertileAge = gen3.next();
 		Agent* agent = new Agent(id, initialAge, fertileAge, deathAge, infertileAge, maizeLoc[0], maizeLoc[1]); //Create new agent with defined values
 		MaizeField* maizeField = new MaizeField(id, MaizeFieldData1, MaizeFieldData2);  
+
 
 		Mcontext.addAgent(maizeField);
 		context.addAgent(agent);
@@ -512,7 +535,6 @@ void AnsaziModel::fissionProcess()
 		MdiscreteSpace->moveTo(Maizeid, initialMaizeLocation);
 		countOfAgents ++; 
 		currentId ++;
-		//std::cout<<"Fission occuring at:"<<initialLocation<<initialMaizeLocation<<std::endl;
 	}	
 	//std::cout<<"Location not found"<<std::endl;
 };
@@ -597,6 +619,7 @@ std::vector<std::vector<std::string> > readcsv(std::string filename1)
 
     std::vector< std::vector<std::string> > array;  // the 2D array
     std::vector<std::string> v;                // array of values for one line only
+
     //std::cout << "test 2 \n" << std::endl; 
     getline(f,rows);
 
@@ -612,8 +635,46 @@ std::vector<std::vector<std::string> > readcsv(std::string filename1)
         array.push_back(v);  // add the 1D array to the 2D array
     }
 
+
     return array;
+
 }
+
+std::vector<std::vector<int> > conversion(std::vector<std::vector<std::string> > array)
+{	
+
+	std::vector< std::vector<int> > val1;  // the 2D array
+    std::vector<int> h1;                // array of values for one line only
+	int h;
+
+	//val1=repast::strToInt(array);
+
+
+	for(size_t i=0; i<array.size();i++)
+/*	{
+		for(size_t j =0; j<sizeof(array[0])/sizeof(array[0][0];j++)
+		{
+			h=repast::strToInt(array[i][j]);
+			h1.push_back(h);
+		}
+		val1.push_back(h1);
+	}*/
+
+/*	for (size_t i=0; i<array.size(); ++i)
+    {
+        for (size_t j=0; j<array[i].size(); ++j)
+        {
+            //cout << hydro[i][j] << "|"; // (separate fields by |)
+        }
+        cout << "\n";
+    }
+*/
+
+
+
+	return val1; 
+}
+
 
 
 //output to file

@@ -23,7 +23,7 @@ Agent::~Agent() {}
 bool Agent::checkDeath() 
 {
 	//std::cout <<"Current age:"<< currentAge <<" Death Age: " <<deathAge<<std::endl;
-	if (deathAge == currentAge)
+	if (deathAge <= currentAge)
 	{
 		return true;     
    	}
