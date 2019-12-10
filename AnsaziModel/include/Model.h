@@ -25,7 +25,7 @@ private:
 	int maxdeathAge; 
 	int minFertileAge; 
 	int maxFertileAge; 
-	int fissionProb; 
+	double fissionProb; 
 	bool watertest;
 	//int Mx;
 	//int My; 
@@ -40,8 +40,8 @@ private:
 	void printToScreen(); 
 	
 public:
-	float MaizeFieldData1;
-	float MaizeFieldData2;
+	double MaizeFieldData1;
+	double MaizeFieldData2;
 
 	AnsaziModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm);
 	~AnsaziModel();
