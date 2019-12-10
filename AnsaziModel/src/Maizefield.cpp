@@ -36,19 +36,6 @@ void MaizeField::MaizeProduction(int yieldFromFile)
     currentYield = H0; //set current yield to household yield.
 }
 
-/*void MaizeField::moveMaize(repast::AgentId MaizeID,std::vector<int> newMaizeLoc,repast::SharedDiscreteSpace* space)
-{
-    //get agent location from the space
-    space->getLocation(MazeFieldID, MazeLoc);
-
-    if (MaizeID == MaizeFieldID)
-    {
-        MazeLoc.clear();
-        MaizeLoc = newMaizeLoc;
-        space->moveTo(MaizeID,newMaizeLoc);
-    }
-    return (0);
-}*/
 
 MaizeField::~MaizeField()
 {

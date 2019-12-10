@@ -138,12 +138,10 @@ void Agent::updateMaizeStock(int Yield)
 
 void Agent::Maizeloc2str()
 {
-	int xval = getMaizeLocX();
-	int yval = getMaizeLocY();
-	Xval = std::to_string(xval);
-	Yval = std::to_string(yval);
-}
+	Xval = getMaizeLocX();
+	Yval = getMaizeLocY();
 
+}
 
 //void Agent::storedYield 
 
