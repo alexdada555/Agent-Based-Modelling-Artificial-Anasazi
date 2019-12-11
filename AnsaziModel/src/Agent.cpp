@@ -105,33 +105,40 @@ void Agent::updateAge()
 
 void Agent::updateMaizeStock(int Yield)
 {	
-	if(tick > 2)
+	if(tick > 1)
 	{
 		tick = 0; 
 	}
-	//else
-	//{
-	maizeStock=Yield;
-	if(Yield > 800)
+
+	maizeStock=Yield; //Saves as a variable within the class
+	previousYield[tick] += Yield-800;
+	if (previousYield[tick] < 0)
 	{
-		previousYield[tick] += Yield-800;
-		if (previousYield[tick] < 0)
+		if(tick == 1)
 		{
 			previousYield[tick-1] += previousYield[tick];
+			if(previousYield[tick] < 0 || previousYield[tick-1] < 0)
+			{
+				previousYield[tick] = 0; 
+				previousYield[tick-1] = 0; 
+			}
 		}
-	}
-	else
-	{
-		previousYield[tick] -= 800;
-		if (previousYield[tick] < 0)
+		else
 		{
-			previousYield[tick] = 0;
+			previousYield[tick+1] += previousYield[tick];
+			if(previousYield[tick] < 0 || previousYield[tick+1] < 0)
+			{
+				previousYield[tick] = 0;
+				previousYield[tick+1] = 0;
+			}
 		}
 	}
 	if((previousYield[0] + previousYield[1])>1600)
 	{
-		previousYield[tick] = 1600-previousYield[tick-1];
-
+		if(tick==1)
+			previousYield[tick] = 1600-previousYield[tick-1];
+		else 
+			previousYield[tick] = 1600-previousYield[tick+1];
 	}
 	tick=tick+1; 
 }

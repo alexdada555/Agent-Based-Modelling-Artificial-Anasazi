@@ -28,7 +28,7 @@ int My;
 int Fx = 79; 
 int Fy = 119; 
 int fullCheck; 
-
+bool run = true;
 
 AnsaziModel::AnsaziModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm): context(comm), Mcontext(comm)
 {
@@ -91,26 +91,31 @@ AnsaziModel::~AnsaziModel()
 
 void AnsaziModel::doPerTick()
 {
-	std::vector<int> countagent;
-	//cout << "Start of tick ------------------------------------------" << endl; 
-	//cout << "Current Year: " << currentYear << endl; 
-	fullCheck = 0; 
-	if(countOfAgents!= 0) 
+	if(run)
 	{
-		removeAgent();
+		std::vector<int> countagent;
+		//cout << "Start of tick ------------------------------------------" << endl; 
+		//cout << "Current Year: " << currentYear << endl; 
+		fullCheck = 0; 
+		if(countOfAgents!= 0) 
+		{
+			removeAgent();
+		}
+		//else 
+			//std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
+		Mx = 0; 
+		My= 0; 
+		//Fx = 79; 
+		//Fy = 119; 
+		std::cout<< "current year: "<<currentYear<<" No. Agents: "<<countOfAgents<<std::endl;
+		//if(currentYear == 800 || currentYear == 900 ||currentYear == 1000||currentYear == 1100||currentYear == 1200||currentYear ==(800+stopAt-1))
+			//printToScreen();
+		countagent.push_back(countOfAgents);
+		//if(currentYear ==(800+stopAt-1))
+		outputfile(countagent);
+		if(countOfAgents>800)
+			run = false;
 	}
-	//else 
-		//std::cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!No Agents!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<< std::endl;
-	Mx = 0; 
-	My= 0; 
-	//Fx = 79; 
-	//Fy = 119; 
-	//std::cout<< currentYear << "	:current year \n";
-	//if(currentYear == 800 || currentYear == 900 ||currentYear == 1000||currentYear == 1100||currentYear == 1200||currentYear ==(800+stopAt-1))
-		//printToScreen();
-	countagent.push_back(countOfAgents);
-	//if(currentYear ==(800+stopAt-1))
-	outputfile(countagent);
 	currentYear++;
 }
 
@@ -288,11 +293,11 @@ void AnsaziModel::removeAgent()
 				if(kill)
 				{
 					//std::cout<<"Killing maize: "<<(*Mit) -> getId()<<std::endl;
-					repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
+					//repast::RepastProcess::instance()->agentRemoved((*it) -> getId());
 	    			context.removeAgent((*it) -> getId());
 					Mcontext.removeAgent((*Mit) -> getId());
 	    			countOfAgents --;
-		    		std::cout<<"Couldnt move anywhere"<<std::endl;
+		    		//std::cout<<"Couldnt move anywhere"<<std::endl;
 	    		}
 			}
 			if((*it)->fissionReady(fissionProb)&&fullCheck==0){
@@ -313,7 +318,6 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 	//Initialise random numbers 
 	//Move the miaze field 
 	int run = 0; 
-
 	int xMLoc = -1; int yMLoc = -1;
 	bool end = false; 
 	
@@ -335,7 +339,8 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 			MaizeFieldList.clear();
 			discreteSpace->getObjectsAt(repast::Point<int>(i, j), agentList); 
 			MdiscreteSpace->getObjectsAt(repast::Point<int>(i, j), MaizeFieldList);
-			if(agentList.size() == 0 && MaizeFieldList.size() == 0 && waterlocation(currentYear,i, j) == 0) //done need to move to closest agent 
+			int watercheck = waterlocation(currentYear,i, j);
+			if(agentList.size() == 0 && MaizeFieldList.size() == 0 && watercheck == 0) //done need to move to closest agent 
 			{
 				x = droughtindex(currentYear,i,j);
 				//This isn't write!!!!!!!============================================================================================
@@ -356,8 +361,11 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 					//std::cout<<"Mx, MY:"<<Mx<<My<<std::endl;					
 					goto skip_loop;
 				}
-			}	
+			}
+			/*if(watercheck == 1)
+				goto nextLine;*/
 		}
+		nextLine:;
 	}
 	run = 0;
 	skip_loop:
@@ -374,17 +382,14 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 	else
 	{
 		repast::Point<int> MaizeLocation(xMLoc, yMLoc);
-		MdiscreteSpace->moveTo(Mit -> getId(), MaizeLocation);
-
 		std::vector<int> gXloc; 
 		std::vector<int> gYloc; 
-
+		MdiscreteSpace->moveTo(Mit -> getId(), MaizeLocation);
 		for(int i = -10; i<=10; i++)
 		{
 			int xLoc = xMLoc+i;
 			if(xLoc>=0&&xLoc<80)
 			{
-
 				for(int j = -10; j<=10 ; j++)
 				{	
 					int yLoc = yMLoc+j; 
@@ -392,9 +397,9 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 					{	
 						float a,b,c;
 						c=sqrt((i^2)+(j^2));
-						if (c<=10)
+						if(c<=10)
 						{
-							agentList.clear(); //
+							agentList.clear(); 
 							MaizeFieldList.clear();
 							discreteSpace->getObjectsAt(repast::Point<int>(xLoc, yLoc), agentList); 
 							MdiscreteSpace->getObjectsAt(repast::Point<int>(xLoc, yLoc), MaizeFieldList);
@@ -402,12 +407,14 @@ bool AnsaziModel::move(MaizeField* Mit, Agent* it)
 							{
 								gXloc.push_back(xLoc);
 								gYloc.push_back(yLoc);
+								//goto skip;
 							}
 						}
 					}
 				}
 			}
 		}
+		//skip:
 
 		if (gXloc.size() ==0)
 		{
@@ -587,9 +594,6 @@ void AnsaziModel::printToScreen()
 						std::cout << "X";
 
 				}
-
-
-
 			}
 		}
 		std::cout << "\n";
