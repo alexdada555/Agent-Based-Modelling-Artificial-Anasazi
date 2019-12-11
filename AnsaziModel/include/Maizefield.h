@@ -20,15 +20,15 @@ class MaizeField
         bool isSatisfied;
 
         int y = 0;
-        int q = 0;   
+        float q = 0;   
         float Ha = 0;
 
         int H0 = 0; // H0 = BY * (1 + n(0,sigmaahv)) = houshold harvest
         int BY = 0; // BY = y*q*Ha = bass yield     
         float sigmaahv = 0;
         int data = 0; 
-        int data1;
-        int data2;
+        float data1;
+        float data2;
 
     public:
         int currentYield = 0;
