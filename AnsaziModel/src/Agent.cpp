@@ -12,10 +12,12 @@
 #include <vector>
 #include <string>
 
-Agent::Agent(repast::AgentId agentId, int currentAge, int fertileAge, int deathAge, int infertileAge, int maizeLocX, int maizeLocY): agentId(agentId), currentAge(currentAge), fertileAge(fertileAge), deathAge(deathAge), infertileAge(infertileAge), maizeLocX(maizeLocX), maizeLocY(maizeLocY)
+Agent::Agent(repast::AgentId agentId, int currentAge, int fertileAge, int deathAge, int infertileAge, int maizeLocX, int maizeLocY, int intialMaize): agentId(agentId), currentAge(currentAge), fertileAge(fertileAge), deathAge(deathAge), infertileAge(infertileAge), maizeLocX(maizeLocX), maizeLocY(maizeLocY)
 {
-	repast::IntUniformGenerator gen = repast::Random::instance()->createUniIntGenerator(2000, 2400); // initialise random number generator
-	previousYield[0] = gen.next();
+
+		//repast::IntUniformGenerator gen = repast::Random::instance()->createUniIntGenerator(1000, 1600); // initialise random number generator
+	previousYield[0] = intialMaize;
+	
 }
 Agent::~Agent() {}
 
@@ -36,7 +38,8 @@ bool Agent::checkDeath()
 bool Agent::checkMaize()
 {
 	expectedYield = maizeStock + previousYield[0] + previousYield[1];
-
+	//std::cout<<"MaizeStock/yield made : "<<maizeStock<<std::endl;  
+	//std::cout<<"current MaizeStock: "<<expectedYield<<std::endl; 
 	if (expectedYield < 800)
 	{
 		checkMove = 1;
@@ -105,40 +108,33 @@ void Agent::updateAge()
 
 void Agent::updateMaizeStock(int Yield)
 {	
-	if(tick > 1)
+	if(tick > 2)
 	{
 		tick = 0; 
 	}
-
-	maizeStock=Yield; //Saves as a variable within the class
-	previousYield[tick] += Yield-800;
-	if (previousYield[tick] < 0)
+	//else
+	//{
+	maizeStock=Yield;
+	if(Yield > 800)
 	{
-		if(tick == 1)
+		previousYield[tick] += Yield-800;
+		if (previousYield[tick] < 0)
 		{
 			previousYield[tick-1] += previousYield[tick];
-			if(previousYield[tick] < 0 || previousYield[tick-1] < 0)
-			{
-				previousYield[tick] = 0; 
-				previousYield[tick-1] = 0; 
-			}
 		}
-		else
+	}
+	else
+	{
+		previousYield[tick] -= 800;
+		if (previousYield[tick] < 0)
 		{
-			previousYield[tick+1] += previousYield[tick];
-			if(previousYield[tick] < 0 || previousYield[tick+1] < 0)
-			{
-				previousYield[tick] = 0;
-				previousYield[tick+1] = 0;
-			}
+			previousYield[tick] = 0;
 		}
 	}
 	if((previousYield[0] + previousYield[1])>1600)
 	{
-		if(tick==1)
-			previousYield[tick] = 1600-previousYield[tick-1];
-		else 
-			previousYield[tick] = 1600-previousYield[tick+1];
+		previousYield[tick] = 1600-previousYield[tick-1];
+
 	}
 	tick=tick+1; 
 }
@@ -150,6 +146,17 @@ void Agent::Maizeloc2str()
 
 }
 
+int Agent::giveMaize(){
+	int totalmaize = previousYield[tick];
+	int take = 0.33*totalmaize; 
+	previousYield[tick] = previousYield[tick] - take; 
+	if(previousYield[tick]<0)
+	{
+		previousYield[tick] = 0;
+	}
+	return take+100; 
+	
+}
 //void Agent::storedYield 
 
 
