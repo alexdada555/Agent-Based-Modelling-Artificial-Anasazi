@@ -36,7 +36,7 @@ private:
     int tick=0; 
     
 public:
-	Agent(repast::AgentId agentId, int currentAge, int fertileAge, int deathAge, int infertileAge, int maizeLocX,int maizeLocY); //for init of agents 
+	Agent(repast::AgentId agentId, int currentAge, int fertileAge, int deathAge, int infertileAge, int maizeLocX,int maizeLocY, int intialMaize); //for init of agents 
 	~Agent();
 	
 	/* Required Getters */
@@ -80,6 +80,7 @@ public:
     void updateAge();
     void Maizeloc2str();
     void move(); 
+    int giveMaize();
 };
 
 #endif

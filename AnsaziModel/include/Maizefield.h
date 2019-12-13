@@ -20,15 +20,15 @@ class MaizeField
         bool isSatisfied;
 
         int y = 0;
-        float q = 0;   
+        double q;   
         float Ha = 0;
 
         int H0 = 0; // H0 = BY * (1 + n(0,sigmaahv)) = houshold harvest
-        int BY = 0; // BY = y*q*Ha = bass yield     
+        float BY = 0; // BY = y*q*Ha = bass yield     
         float sigmaahv = 0;
         int data = 0; 
-        float data1;
-        float data2;
+        int data1;
+        int data2;
 
     public:
         int currentYield = 0;
@@ -46,7 +46,7 @@ class MaizeField
               repast::SharedDiscreteSpace<MaizeField, repast::StrictBorders, repast::SimpleAdder<MaizeField> >* space);
         void move(repast::SharedDiscreteSpace<MaizeField, repast::StrictBorders, repast::SimpleAdder<MaizeField> >* space); 
         
-        MaizeField(repast::AgentId MaizeFieldID,float data1,float data2);
+        MaizeField(repast::AgentId MaizeFieldID,float data1,float data2,double q);
         ~MaizeField();
         void getAttributes(float data1,float data2);
         void MaizeProduction(int yieldFromFile);

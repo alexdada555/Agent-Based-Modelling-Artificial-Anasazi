@@ -27,6 +27,7 @@ private:
 	int maxFertileAge; 
 	double fissionProb; 
 	bool watertest;
+	double q;
 	//int Mx;
 	//int My; 
 	
@@ -42,6 +43,7 @@ private:
 public:
 	double MaizeFieldData1;
 	double MaizeFieldData2;
+	double sigmaahvNew; 
 
 	AnsaziModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm);
 	~AnsaziModel();
@@ -50,7 +52,7 @@ public:
 	void doPerTick();
 	void removeAgent();
 	void updateDeath();
-	void fissionProcess(); 
+	void fissionProcess(Agent* it); 
 	void outputfile(std::vector<int> value);
 	bool move(MaizeField* Mit, Agent* it); 
 	bool waterlocation(int year1, int xaxis1, int yaxis1);
