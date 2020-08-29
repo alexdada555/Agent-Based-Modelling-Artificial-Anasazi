@@ -21,7 +21,7 @@ class MaizeField
 
         int y = 0;
         double q;   
-        float Ha = 0;
+        float Ha;
 
         int H0 = 0; // H0 = BY * (1 + n(0,sigmaahv)) = houshold harvest
         float BY = 0; // BY = y*q*Ha = bass yield     
@@ -29,10 +29,13 @@ class MaizeField
         int data = 0; 
         int data1;
         int data2;
+        double pastsig = 0;
+        double sig;
 
     public:
         int currentYield = 0;
         int droughtIndex = 0;
+        bool tick;
 
         virtual repast::AgentId& getId() { return MaizeFieldID; }
         virtual const repast::AgentId& getId() const { return MaizeFieldID; }

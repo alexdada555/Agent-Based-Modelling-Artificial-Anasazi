@@ -44,7 +44,8 @@ public:
 	double MaizeFieldData1;
 	double MaizeFieldData2;
 	double sigmaahvNew; 
-
+	bool sametick = 0;
+	
 	AnsaziModel(std::string propsFile, int argc, char** argv, boost::mpi::communicator* comm);
 	~AnsaziModel();
 	void initAgents();
@@ -53,7 +54,7 @@ public:
 	void removeAgent();
 	void updateDeath();
 	void fissionProcess(Agent* it); 
-	void outputfile(std::vector<int> value);
+	void outputfile(int value);
 	bool move(MaizeField* Mit, Agent* it); 
 	bool waterlocation(int year1, int xaxis1, int yaxis1);
 	int droughtindex(int year, int xaxis, int yaxis);
@@ -64,7 +65,7 @@ public:
 	std::vector<std::vector<double> > waterint;
 	std::vector<std::vector<double> > hydroint;
 	std::vector<std::vector<double> > pdsiint;
-
+	std::vector<std::vector<double> > mapsint;
 
 };
 

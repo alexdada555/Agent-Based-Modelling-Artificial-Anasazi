@@ -15,6 +15,8 @@ MaizeField::MaizeField(repast::AgentId MaizeFieldID,float data1,float data2, dou
 {
     // initialise maizefield
     getAttributes(data1,data2);   // read in constants from properties file
+    repast::DoubleUniformGenerator gen = repast::Random::instance()->createUniDoubleGenerator(0, sigmaahv); // initialise random number generator
+    pastsig = gen.next();
 }
 
 void MaizeField::getAttributes(float data1,float data2)
@@ -26,14 +28,26 @@ void MaizeField::getAttributes(float data1,float data2)
 
 void MaizeField::MaizeProduction(int yieldFromFile)
 {
-    //repast::IntUniformGenerator gen1 = repast::Random::instance()->createUniIntGenerator(0, 1); // initialise random number generator
-    repast::DoubleUniformGenerator gen2 = repast::Random::instance()->createUniDoubleGenerator(0.05, sigmaahv); // initialise random number generator
-    //q = gen1.next();
+    repast::DoubleUniformGenerator gen1 = repast::Random::instance()->createUniDoubleGenerator(0, 1); // initialise random number generator
+    repast::DoubleUniformGenerator gen2 = repast::Random::instance()->createUniDoubleGenerator(0, sigmaahv); // initialise random number generator
+    double q1 = gen1.next();
 
     y = yieldFromFile;
-    BY = y*q*Ha; // calculate base yield
-    H0 = BY * (1 + gen2.next()); // calculate household harvest
+    //std::cout<<"yieldFromFile: "<<yieldFromFile<<std::endl;
+    //std::cout<<"Ha "<<Ha<<std::endl;
+    BY = y*q1*Ha; // calculate base yield
+    if(tick == 1)
+    {   
+        sig = pastsig;
+    }
+    else
+    {
+        sig = gen2.next();
+    }
+    H0 = BY * (1 + sig); // calculate household harvest
+    pastsig = sig;
     currentYield = H0; //set current yield to household yield.
+    //std::cout<<"sig From Space = "<<sig<<std::endl;
     //std::cout<<"currentYield "<< currentYield<<std::endl;
     //std::cout<<"Calculated Current Yield = "<<currentYield<<std::endl; 
 }

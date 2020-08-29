@@ -1,0 +1,14 @@
+mindeathAge = 26
+maxdeathAge = 31
+minFertileAge = 26
+maxFertileAge= 31
+fissionProb = 0.105
+harvest.adjustment.level = 0.9
+sigmaahv = 0.5
+global.random.seed = 2
+startYear = 800
+stop.at = 551
+board.sizex = 80
+board.sizey = 120
+count.of.agents = 14
+q = 0.9

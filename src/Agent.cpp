@@ -38,8 +38,8 @@ bool Agent::checkDeath()
 bool Agent::checkMaize()
 {
 	expectedYield = maizeStock + previousYield[0] + previousYield[1];
-	//std::cout<<"MaizeStock/yield made : "<<maizeStock<<std::endl;  
-	//std::cout<<"current MaizeStock: "<<expectedYield<<std::endl; 
+	//std::cout<<"MaizeStock/yield made : "<<maizeStock;  
+	//std::cout<<" current MaizeStock: "<<expectedYield<<std::endl; 
 	if (expectedYield < 800)
 	{
 		checkMove = 1;
@@ -85,8 +85,8 @@ void Agent::printAttributes()
 {
 	//std::cout <<"Printing Agent:" << std::endl; 
 	//std::cout <<"Agent id:"<< AgentId id <<std::endl; 
-	std::cout <<"Agent Current age: "<< currentAge <<std::endl; 
-	std::cout << "Death Age: " <<deathAge<<std::endl;
+	//std::cout <<"Agent Current age: "<< currentAge <<std::endl; 
+	//std::cout << "Death Age: " <<deathAge<<std::endl;
 	//std::cout << "infertile Age: " <<infertileAge<<std::endl;
 }
 
@@ -154,7 +154,7 @@ int Agent::giveMaize(){
 	{
 		previousYield[tick] = 0;
 	}
-	return take+100; 
+	return take; 
 	
 }
 //void Agent::storedYield 

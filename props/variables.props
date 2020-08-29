@@ -1,0 +1,8 @@
+global.random.seed = 1
+minDeathAge = 25
+maxDeathAge = 29
+minfertileAge = 33
+maxfertileAge = 34
+fissionProb = 0.107501014424488
+harvest.adjustment.level = 0.848330507753417
+sigmaahv = 0.369704755139537
